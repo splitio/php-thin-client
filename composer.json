@@ -2,7 +2,6 @@
     "name": "spltio/thin-client",
     "description": "split.io php lw client",
     "type": "library",
-    "version": "0.0.1-dev",
     "autoload": {
         "psr-4": {
             "SplitIO\\ThinClient\\": "src/"
