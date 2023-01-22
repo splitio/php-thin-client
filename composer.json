@@ -1,5 +1,5 @@
 {
-    "name": "spltio/thin-client",
+    "name": "splitio/thin-client",
     "description": "split.io php lw client",
     "type": "library",
     "autoload": {
