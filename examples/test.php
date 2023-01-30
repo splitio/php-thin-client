@@ -6,8 +6,8 @@ use \SplitIO\ThinClient\Factory;
 
 $factory = Factory::withConfig([
 	'transfer' => [
-		'address' => '../../splitd/test.sock',
-		'type'    => 'unix-stream',
+		'address' => '../../splitd/splitd.sock',
+		'type'    => 'unix-seqpacket',
 	]
 ]);
 

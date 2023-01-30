@@ -14,11 +14,17 @@ class UnixStream implements RawConnection
 		$this->framer = new Framing\LengthPrefix();
 
 		if (!$this->sock = socket_create(AF_UNIX, SOCK_STREAM, 0)) {
-			throw new \Exception("failed to create a socket");
+			throw new ConnectionException(
+				"failed to create a socket: "
+				. Helpers::getSocketError($this->sock)
+			);
 		}
 
 		if (!socket_connect($this->sock, $this->targetSockFN)) {
-			throw new \Exception("failed to connect to remote socket $this->targetSockFN");
+			throw new ConnectionException(
+				"failed to connect to remote socket $this->targetSockFN:" 
+				. Helpers::getSocketError($this->sock)
+			);
 		}
 	}
 
@@ -26,7 +32,10 @@ class UnixStream implements RawConnection
 	{
 		$toSend = $this->framer->Frame($message);
 		if (socket_send($this->sock, $toSend, strlen($toSend), 0) != strlen($toSend)) {
-			throw new \Exception("error writing to socket");
+			throw new ConnectionException(
+				"error writing to socket: "
+				. Helpers::getSocketError($this->sock)
+			);
 		}
 	}
 
@@ -35,7 +44,10 @@ class UnixStream implements RawConnection
 		$buffer = "";
 		$n = $this->framer->ReadFrame($this->sock, $buffer);
 		if (!$n) {
-			throw new \Exception("error reading");
+			throw new ConnectionException(
+				"error reading from socket: "
+				. Helpers::getSocketError($this->sock)
+			);
 		}
 		return substr($buffer, 0, $n);
 	}
