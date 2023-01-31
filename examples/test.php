@@ -13,5 +13,5 @@ $factory = Factory::withConfig([
 
 $client = $factory->client();
 
-echo $client->getTreatment("key2", "", "tinchotest", ['age' => 64]) . PHP_EOL;
+echo $client->getTreatment("key2", null, "tinchotest", null) . PHP_EOL;
 echo $client->getTreatment("key1", "", "test_DOS", ['age' => 64]) . PHP_EOL;

@@ -16,10 +16,8 @@ class Manager
 	private string $id;
 
 
-	public function __construct(
-		TransferConfig $transferConfig,
-		SerializationConfig $serializationConfig
-	) {
+	public function __construct(TransferConfig $transferConfig, SerializationConfig $serializationConfig)
+	{
 		// save these 2 for future reconnects
 		$this->transferConfig = $transferConfig;
 		$this->id = 'someId';
@@ -29,7 +27,7 @@ class Manager
 		$this->register($this->id);
 	}
 
-	public function getTreatment(string $key, string $bucketingKey, string $feature, array $attributes)
+	public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes)
 	{
 		return $this->rpcWithReconnect(RPC::forTreatment($key, $bucketingKey, $feature, $attributes));
 	}
@@ -63,7 +61,7 @@ class Manager
 		$this->conn->sendMessage($this->serializer->serialize($rpc));
 		$parsed = $this->serializer->deserialize($this->conn->readMessage());
 		if ($parsed['Status'] != Protocol\Result::Ok->value) {
-			throw New Protocol\RemoteException("error in daemon when executing rpc");
+			throw new Protocol\RemoteException("error in daemon when executing rpc");
 		}
 		return $parsed['Payload'];
 	}

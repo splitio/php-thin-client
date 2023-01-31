@@ -12,7 +12,7 @@ class Client implements ClientInterface
 		$this->lm = $manager;
 	}
 
-	public function getTreatment(string $key, string $bucketingKey, string $feature, array $attributes): string
+	public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): string
 	{
 		try {
 			return $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes)['Treatment'];

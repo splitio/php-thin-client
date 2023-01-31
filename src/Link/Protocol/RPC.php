@@ -52,7 +52,7 @@ class RPC
 		);
 	}
 
-	public static function forTreatment(string $key, string $bucketingKey, string $feature, array $attributes): RPC
+	public static function forTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): RPC
 	{
 		return new RPC(
 			Version::V1,
