@@ -7,14 +7,17 @@ use \SplitIO\ThinClient\Link\Protocol\RPC;
 use MessagePack\Packer;
 use MessagePack\Type\Map;
 use MessagePack\BufferUnpacker;
+use MessagePack\Extension\TimestampExtension;
 
 class MessagePack implements Serializer
 {
 	private Packer $packer;
+	private BufferUnpacker $unpacker;
 
 	public function __construct()
 	{
-		$this->packer = new Packer();
+		$this->packer = (new Packer())->extendWith(new TimestampExtension());
+		$this->unpacker = (new BufferUnpacker())->extendWith(new TimestampExtension());
 	}
 
 	public function serialize(RPC $rpc)
@@ -24,7 +27,7 @@ class MessagePack implements Serializer
 
 	public function deserialize(string $raw)
 	{
-		$unpacker = new BufferUnpacker($raw, null);
-		return $unpacker->unpack();
+		$this->unpacker->reset($raw);
+		return $this->unpacker->unpack();
 	}
 }
