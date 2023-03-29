@@ -14,6 +14,7 @@
         }
     ],
     "require": {
-        "rybakit/msgpack": "^0.9.1"
+        "rybakit/msgpack": "^0.9.1",
+        "psr/log": "^3.0"
     }
 }
