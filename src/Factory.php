@@ -7,14 +7,19 @@ use SplitIO\ThinClient\Foundation\Logging\Helpers;
 class Factory implements FactoryInterface
 {
     private Config\Main $config;
-    private Link\Manager $linkManager;
+    private Link\Consumer\Manager $linkManager;
     private \Psr\Log\LoggerInterface $logger;
 
     private function __construct(Config\Main $config)
     {
         $this->config = $config;
         $this->logger = Helpers::getLogger($config->logging());
-        $this->linkManager = new Link\Manager($config->transfer(), $config->serialization());
+        $this->linkManager = Link\Consumer\Initializer::setup(
+            Link\Protocol\Version::V1,
+            $config->transfer(),
+            $config->serialization(),
+            $config->utils(),
+        );
     }
 
     public static function default(): Factory
@@ -29,6 +34,6 @@ class Factory implements FactoryInterface
 
     public function client(): Client
     {
-        return new Client($this->linkManager, $this->logger);
+        return new Client($this->linkManager, $this->logger, $this->config->utils()->impressionListener());
     }
 };

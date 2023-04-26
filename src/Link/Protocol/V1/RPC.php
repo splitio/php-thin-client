@@ -1,9 +1,11 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol;
+namespace SplitIO\ThinClient\Link\Protocol\V1;
 
+use  SplitIO\ThinClient\Link\Protocol\Version;
+use  SplitIO\ThinClient\Link\Serialization\Serializable;
 
-class RPC
+class RPC implements Serializable
 {
     private Version $version;
     private OpCode $opcode;
@@ -31,16 +33,7 @@ class RPC
         return $this->args;
     }
 
-    public function toArray(): array
-    {
-        return array(
-            "Version" => $this->getVersion()->value,
-            "OpCode"  => $this->getOpCode()->value,
-            "Args"    => $this->getArgs(),
-        );
-    }
-
-    public static function forRegister(string $id): RPC
+    public static function forRegister(string $id, RegisterFlags $registerFlags): RPC
     {
         $v = \SplitIO\ThinClient\Version::CURRENT;
         return new RPC(
@@ -48,7 +41,8 @@ class RPC
             OpCode::Register,
             [
                 RegisterArgs::ID->value          => $id,
-                RegisterArgs::SDK_VERSION->value => "Splitd_PHP-$v"
+                RegisterArgs::SDK_VERSION->value => "Splitd_PHP-$v",
+                RegisterArgs::FLAGS->value       => $registerFlags->get(),
             ]
         );
     }
@@ -64,6 +58,15 @@ class RPC
                 TreatmentArgs::FEATURE->value       => $feature,
                 TreatmentArgs::ATTRIBUTES->value    => $attributes,
             )
+        );
+    }
+
+    function getSerializable(): int|float|array|string|null
+    {
+        return array(
+            "v"  => $this->getVersion()->value,
+            "o"  => $this->getOpCode()->value,
+            "a"  => $this->getArgs(),
         );
     }
 }

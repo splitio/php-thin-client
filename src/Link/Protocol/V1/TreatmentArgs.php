@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol;
+namespace SplitIO\ThinClient\Link\Protocol\V1;
 
 
 enum TreatmentArgs: int

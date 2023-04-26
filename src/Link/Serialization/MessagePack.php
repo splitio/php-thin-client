@@ -2,7 +2,6 @@
 
 namespace SplitIO\ThinClient\Link\Serialization;
 
-use \SplitIO\ThinClient\Link\Protocol\RPC;
 
 use MessagePack\Packer;
 use MessagePack\Type\Map;
@@ -20,12 +19,14 @@ class MessagePack implements Serializer
         $this->unpacker = (new BufferUnpacker())->extendWith(new TimestampExtension());
     }
 
-    public function serialize(RPC $rpc)
+    public function serialize(Serializable $item, bool $emptyArrayAsMap)
     {
-        return $this->packer->pack(new Map($rpc->toArray()));
+        return $this->packer->pack(
+            $emptyArrayAsMap ? new Map($item->getSerializable()) : $item->getSerializable()
+        );
     }
 
-    public function deserialize(string $raw)
+    public function deserialize(string $raw): mixed
     {
         $this->unpacker->reset($raw);
         return $this->unpacker->unpack();

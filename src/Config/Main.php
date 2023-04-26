@@ -7,12 +7,14 @@ class Main
     private Transfer $transfer;
     private Serialization $serialization;
     private Logging $logging;
+    private Utils $utils;
 
-    private function __construct(Transfer $transfer, Serialization $serialization, Logging $logging)
+    private function __construct(Transfer $transfer, Serialization $serialization, Logging $logging, Utils $utils)
     {
         $this->transfer = $transfer;
         $this->serialization = $serialization;
         $this->logging = $logging;
+        $this->utils = $utils;
     }
 
     public function transfer(): Transfer
@@ -30,12 +32,18 @@ class Main
         return $this->logging;
     }
 
+    public function utils(): Utils
+    {
+        return $this->utils;
+    }
+
     public static function fromArray(array $config): Main
     {
         return new Main(
             Transfer::fromArray($config['transfer']           ?? []),
             Serialization::fromArray($config['serialization'] ?? []),
             Logging::fromArray($config['logging'] ?? []),
+            Utils::fromArray($config['utils'] ?? []),
         );
     }
 
@@ -45,6 +53,7 @@ class Main
             Transfer::default(),
             Serialization::default(),
             Logging::default(),
+            Utils::default(),
         );
     }
 }
