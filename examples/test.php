@@ -14,6 +14,7 @@ class CustomListener implements ImpressionListener
             ." feat=".$i->getFeature()
             ." treatment=".$i->getTreatment()
             ." label=".$i->getLabel()
+            ." cn=".$i->getChangeNumber()
             ." #attrs=".(($a == null) ? 0 : count($a))."\n";
     }
 }

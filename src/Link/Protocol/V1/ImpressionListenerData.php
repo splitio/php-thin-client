@@ -8,16 +8,23 @@ class ImpressionListenerData implements Deserializable
 {
     private string $label;
     private int $timestamp;
+    private int $changeNumber;
 
-    public function __construct(string $label, string $timestamp)
+    public function __construct(string $label, int $changeNumber, int $timestamp)
     {
         $this->label = $label;
+        $this->changeNumber = $changeNumber;
         $this->timestamp = $timestamp;
     }
 
     public function getLabel(): string
     {
         return $this->label;
+    }
+
+    public function getChangeNumber(): int
+    {
+        return $this->changeNumber;
     }
 
     public function getTimestamp(): int
@@ -31,6 +38,6 @@ class ImpressionListenerData implements Deserializable
             throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
         }
 
-        return new ImpressionListenerData($raw['l'], $raw['m']);
+        return new ImpressionListenerData($raw['l'], $raw['c'], $raw['m']);
     }
 }

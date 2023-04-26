@@ -33,6 +33,7 @@ class Client implements ClientInterface
                     $feature,
                     $result->getTreatment(),
                     $result->getListenerData()->getLabel(),
+                    $result->getListenerData()->getChangeNumber(),
                     $result->getListenerData()->getTimestamp()
                 ), $attributes);
             }

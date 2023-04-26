@@ -9,6 +9,7 @@ class Impression
     private string $feature;
     private string $treatment;
     private string $label;
+    private int $changeNumber;
     private int $timestamp;
 
     public function __construct(string $key,
@@ -16,6 +17,7 @@ class Impression
         string $feature,
         string $treatment,
         string $label,
+        int $changeNumber,
         int $timestamp)
     {
         $this->key = $key;
@@ -23,6 +25,7 @@ class Impression
         $this->feature = $feature;
         $this->treatment = $treatment;
         $this->label = $label;
+        $this->changeNumber = $changeNumber;
         $this->timestamp = $timestamp;
     }
 
@@ -49,6 +52,11 @@ class Impression
     public function getLabel(): string
     {
         return $this->label;
+    }
+
+    public function getChangeNumber(): int
+    {
+        return $this->changeNumber;
     }
 
     public function getTimestamp(): int
