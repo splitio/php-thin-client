@@ -6,5 +6,5 @@ use SplitIO\ThinClient\Models\Impression;
 
 interface ImpressionListener
 {
-    public function accept(Impression $impression);
+    public function accept(Impression $impression, ?array $attributes);
 }

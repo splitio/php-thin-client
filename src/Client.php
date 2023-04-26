@@ -34,7 +34,7 @@ class Client implements ClientInterface
                     $result->getTreatment(),
                     $result->getListenerData()->getLabel(),
                     $result->getListenerData()->getTimestamp()
-                ));
+                ), $attributes);
             }
 
             return $result->getTreatment();
