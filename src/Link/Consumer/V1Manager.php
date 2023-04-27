@@ -14,11 +14,11 @@ use \SplitIO\ThinClient\Config\Utils as UtilsConfig;
 
 class V1Manager implements Manager
 {
-    private Transfer\RawConnection $conn;
-    private Serialization\Serializer $serializer;
-    private TransferConfig $transferConfig;
-    private UtilsConfig $utilsConfig;
-    private string $id;
+    private /*Transfer\RawConnection*/ $conn;
+    private /*Serialization\Serializer*/ $serializer;
+    private /*TransferConfig*/ $transferConfig;
+    private /*UtilsConfig*/ $utilsConfig;
+    private /*string*/ $id;
 
 
     public function __construct(TransferConfig $transferConfig, SerializationConfig $serializationConfig, UtilsConfig $utilsConfig)
@@ -50,7 +50,7 @@ class V1Manager implements Manager
     {
         try {
             return $this->performRPC($rpc);
-        } catch (Transfer\ConnectionException) {
+        } catch (Transfer\ConnectionException $exc) {
             // TODO(mredolatti): log
         }
 

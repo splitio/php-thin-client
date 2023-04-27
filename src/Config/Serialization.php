@@ -4,7 +4,7 @@ namespace SplitIO\ThinClient\Config;
 
 class Serialization
 {
-    private string $mechanism;
+    private /*string*/ $mechanism;
 
     private function __construct(string $mechanism)
     {

@@ -7,16 +7,16 @@ use \Psr\Log\LogLevel;
 
 class Logging
 {
-    private ?LoggerInterface $psrLogger;
-    private string $level;
+    private /*?LoggerInterface*/ $psrLogger;
+    private /*string*/ $level;
 
-    private function __construct(LoggerInterface|null $psrLogger, string $level)
+    private function __construct(?LoggerInterface $psrLogger, string $level)
     {
         $this->psrLogger = $psrLogger;
         $this->level = $level;
     }
 
-    public function logger(): LoggerInterface | null
+    public function logger(): ?LoggerInterface
     {
         return $this->psrLogger;
     }

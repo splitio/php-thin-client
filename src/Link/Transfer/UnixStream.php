@@ -4,9 +4,9 @@ namespace SplitIO\ThinClient\Link\Transfer;
 
 class UnixStream implements RawConnection
 {
-    private string $targetSockFN;
-    private \Socket $sock;
-    private Framing\Framer $framer;
+    private /*string*/ $targetSockFN;
+    private /*\Socket*/ $sock;
+    private /*Framing\Framer*/ $framer;
 
     public function __construct(string $targetSockFN)
     {

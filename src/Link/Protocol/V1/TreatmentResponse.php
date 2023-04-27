@@ -7,8 +7,8 @@ use SplitIO\ThinClient\Link\Protocol\V1\Result;
 class TreatmentResponse extends Response
 {
 
-    private string $treatment;
-    private ?ImpressionListenerData $listenerData;
+    private /*string*/ $treatment;
+    private /*?ImpressionListenerData*/ $listenerData;
 
     public function __construct(Result $result, string $treatment, ?ImpressionListenerData $listenerData)
     {
@@ -27,7 +27,7 @@ class TreatmentResponse extends Response
         return $this->listenerData;
     }
 
-    static function fromRaw(mixed $raw): mixed
+    static function fromRaw(/*mixed*/ $raw)/*: mixed*/
     {
         if (!is_array($raw)) {
             throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));

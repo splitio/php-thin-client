@@ -7,9 +7,9 @@ use  SplitIO\ThinClient\Link\Serialization\Serializable;
 
 class RPC implements Serializable
 {
-    private Version $version;
-    private OpCode $opcode;
-    private array $args;
+    private /*Version*/ $version;
+    private /*OpCode*/ $opcode;
+    private /*array*/ $args;
 
     private function __construct(Version $version, OpCode $opcode, array $args)
     {
@@ -37,12 +37,12 @@ class RPC implements Serializable
     {
         $v = \SplitIO\ThinClient\Version::CURRENT;
         return new RPC(
-            Version::V1,
-            OpCode::Register,
+            Version::V1(),
+            OpCode::Register(),
             [
-                RegisterArgs::ID->value          => $id,
-                RegisterArgs::SDK_VERSION->value => "Splitd_PHP-$v",
-                RegisterArgs::FLAGS->value       => $registerFlags->get(),
+                RegisterArgs::ID()->getValue()          => $id,
+                RegisterArgs::SDK_VERSION()->getValue() => "Splitd_PHP-$v",
+                RegisterArgs::FLAGS()->getValue()       => $registerFlags->get(),
             ]
         );
     }
@@ -50,22 +50,22 @@ class RPC implements Serializable
     public static function forTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): RPC
     {
         return new RPC(
-            Version::V1,
-            OpCode::Treatment,
+            Version::V1(),
+            OpCode::Treatment(),
             array(
-                TreatmentArgs::KEY->value           => $key,
-                TreatmentArgs::BUCKETING_KEY->value => $bucketingKey,
-                TreatmentArgs::FEATURE->value       => $feature,
-                TreatmentArgs::ATTRIBUTES->value    => $attributes,
+                TreatmentArgs::KEY()->getValue()           => $key,
+                TreatmentArgs::BUCKETING_KEY()->getValue() => $bucketingKey,
+                TreatmentArgs::FEATURE()->getValue()       => $feature,
+                TreatmentArgs::ATTRIBUTES()->getValue()    => $attributes,
             )
         );
     }
 
-    function getSerializable(): int|float|array|string|null
+    function getSerializable() /* : mixed */
     {
         return array(
-            "v"  => $this->getVersion()->value,
-            "o"  => $this->getOpCode()->value,
+            "v"  => $this->getVersion()->getValue(),
+            "o"  => $this->getOpCode()->getValue(),
             "a"  => $this->getArgs(),
         );
     }

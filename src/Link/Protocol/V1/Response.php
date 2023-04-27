@@ -8,7 +8,7 @@ use  SplitIO\ThinClient\Link\Serialization\Deserializable;
 abstract class Response implements Deserializable
 {
 
-    private Result $result;
+    private /*Result*/ $result;
 
     public function __construct(Result $result)
     {
@@ -20,5 +20,5 @@ abstract class Response implements Deserializable
         return $this->result;
     }
 
-    static abstract function fromRaw(mixed $raw): mixed;
+    static abstract function fromRaw(/*mixed*/ $raw)/*: mixed*/;
 }

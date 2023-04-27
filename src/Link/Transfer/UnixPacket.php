@@ -4,8 +4,8 @@ namespace SplitIO\ThinClient\Link\Transfer;
 
 class UnixPacket implements RawConnection
 {
-    private string $targetSockFN;
-    private \Socket $sock;
+    private /*string*/ $targetSockFN;
+    private /*\Socket*/ $sock;
 
     public function __construct(string $targetSockFN)
     {

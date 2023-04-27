@@ -14,7 +14,7 @@ class Initializer
         Config\Utils $utilityConfig): Manager
     {
         switch ($version) {
-        case Version::V1:
+        case Version::V1():
             return new V1Manager($transferConfig, $serializationConfig, $utilityConfig);
         }
     }

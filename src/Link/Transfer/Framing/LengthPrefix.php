@@ -10,7 +10,7 @@ class LengthPrefix implements Framer
         return $prefix . $message;
     }
 
-    public function ReadFrame(\Socket $sock, string &$buffer): int
+    public function ReadFrame(/*\Socket */$sock, string &$buffer): int
     {
         $sizeBuffer = "    ";
         $n = socket_recv($sock, $sizeBuffer, 4, 0);

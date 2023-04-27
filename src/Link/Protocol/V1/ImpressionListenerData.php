@@ -6,9 +6,9 @@ use  SplitIO\ThinClient\Link\Serialization\Deserializable;
 
 class ImpressionListenerData implements Deserializable
 {
-    private string $label;
-    private int $timestamp;
-    private int $changeNumber;
+    private /*string*/ $label;
+    private /*int*/ $timestamp;
+    private /*int*/ $changeNumber;
 
     public function __construct(string $label, int $changeNumber, int $timestamp)
     {
@@ -32,7 +32,7 @@ class ImpressionListenerData implements Deserializable
         return $this->timestamp;
     }
 
-    public static function fromRaw(mixed $raw): mixed
+    public static function fromRaw(/*mixed*/ $raw)/*: mixed*/
     {
         if (!is_array($raw)) {
             throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));

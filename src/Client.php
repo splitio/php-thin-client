@@ -7,14 +7,14 @@ use \Psr\Log\LoggerInterface;
 
 class Client implements ClientInterface
 {
-    private Link\Consumer\Manager $lm;
-    private LoggerInterface $logger;
-    private ?ImpressionListener $impressionListener;
+    private /*Link\Consumer\Manager*/ $lm;
+    private /*LoggerInterface*/ $logger;
+    private /*?ImpressionListener*/ $impressionListener;
 
     public function __construct(
         Link\Consumer\Manager $manager,
         LoggerInterface $logger,
-        ?ImpressionListener $impressionListener,
+        ?ImpressionListener $impressionListener
     )
     {
         $this->logger = $logger;

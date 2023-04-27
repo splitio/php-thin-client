@@ -4,8 +4,8 @@ namespace SplitIO\ThinClient\Config;
 
 class Transfer
 {
-    private string $sockFN;
-    private string $connType;
+    private /*string*/ $sockFN;
+    private /*string*/ $connType;
 
     private function __construct(string $sockFN, string $connType)
     {

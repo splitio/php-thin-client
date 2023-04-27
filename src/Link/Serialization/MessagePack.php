@@ -10,8 +10,8 @@ use MessagePack\Extension\TimestampExtension;
 
 class MessagePack implements Serializer
 {
-    private Packer $packer;
-    private BufferUnpacker $unpacker;
+    private /*Packer*/ $packer;
+    private /*BufferUnpacker*/ $unpacker;
 
     public function __construct()
     {
@@ -26,7 +26,7 @@ class MessagePack implements Serializer
         );
     }
 
-    public function deserialize(string $raw): mixed
+    public function deserialize(string $raw)/*: mixed*/
     {
         $this->unpacker->reset($raw);
         return $this->unpacker->unpack();
