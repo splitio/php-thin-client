@@ -62,7 +62,7 @@ class V1Manager implements Manager
 
     private function performRPC(RPC $rpc): array
     {
-        $this->conn->sendMessage($this->serializer->serialize($rpc, true));
+        $this->conn->sendMessage($this->serializer->serialize($rpc));
         return $this->serializer->deserialize($this->conn->readMessage());
     }
 };

@@ -56,7 +56,9 @@ class RPC implements Serializable
                 TreatmentArgs::KEY()->getValue()           => $key,
                 TreatmentArgs::BUCKETING_KEY()->getValue() => $bucketingKey,
                 TreatmentArgs::FEATURE()->getValue()       => $feature,
-                TreatmentArgs::ATTRIBUTES()->getValue()    => $attributes,
+                TreatmentArgs::ATTRIBUTES()->getValue()    => ($attributes != null && count($attributes) > 0)
+                    ? $attributes
+                    : null,
             )
         );
     }

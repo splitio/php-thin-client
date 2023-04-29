@@ -4,7 +4,6 @@ namespace SplitIO\ThinClient\Link\Serialization;
 
 
 use MessagePack\Packer;
-use MessagePack\Type\Map;
 use MessagePack\BufferUnpacker;
 use MessagePack\Extension\TimestampExtension;
 
@@ -19,11 +18,9 @@ class MessagePack implements Serializer
         $this->unpacker = (new BufferUnpacker())->extendWith(new TimestampExtension());
     }
 
-    public function serialize(Serializable $item, bool $emptyArrayAsMap)
+    public function serialize(Serializable $item)
     {
-        return $this->packer->pack(
-            $emptyArrayAsMap ? new Map($item->getSerializable()) : $item->getSerializable()
-        );
+        return $this->packer->pack($item->getSerializable());
     }
 
     public function deserialize(string $raw)/*: mixed*/
