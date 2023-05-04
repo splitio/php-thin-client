@@ -26,8 +26,9 @@ class Client implements ClientInterface
     {
         try {
             $result = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
+
             if ($this->impressionListener != null && $result->getListenerData() != null) {
-                $this->impressionListener->accept(new models\Impression(
+                $this->impressionListener->accept(new Models\Impression(
                     $key,
                     $bucketingKey,
                     $feature,
