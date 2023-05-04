@@ -3,6 +3,7 @@
 namespace SplitIO\ThinClient;
 
 use \SplitIO\ThinClient\Utils\ImpressionListener;
+use \SplitIO\ThinClient\Models\Impression;
 use \Psr\Log\LoggerInterface;
 
 class Client implements ClientInterface
@@ -28,7 +29,7 @@ class Client implements ClientInterface
             $result = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
 
             if ($this->impressionListener != null && $result->getListenerData() != null) {
-                $this->impressionListener->accept(new Models\Impression(
+                $this->impressionListener->accept(new Impression(
                     $key,
                     $bucketingKey,
                     $feature,
