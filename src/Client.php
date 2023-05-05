@@ -4,7 +4,10 @@ namespace SplitIO\ThinClient;
 
 use \SplitIO\ThinClient\Utils\ImpressionListener;
 use \SplitIO\ThinClient\Models\Impression;
+use \SplitIO\ThinClient\Link\Consumer\Manager;
+use \SplitIO\ThinClient\Link\Protocol\V1\TreatmentResponse;
 use \Psr\Log\LoggerInterface;
+
 
 class Client implements ClientInterface
 {
@@ -12,11 +15,7 @@ class Client implements ClientInterface
     private /*LoggerInterface*/ $logger;
     private /*?ImpressionListener*/ $impressionListener;
 
-    public function __construct(
-        Link\Consumer\Manager $manager,
-        LoggerInterface $logger,
-        ?ImpressionListener $impressionListener
-    )
+    public function __construct(Manager $manager, LoggerInterface $logger, ?ImpressionListener $impressionListener)
     {
         $this->logger = $logger;
         $this->lm = $manager;
@@ -27,8 +26,27 @@ class Client implements ClientInterface
     {
         try {
             $result = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
+            $this->handleListener($key, $bucketingKey, $feature, $attributes, $result);
+            return $result->getTreatment();
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return "control";
+        }
+    }
 
-            if ($this->impressionListener != null && $result->getListenerData() != null) {
+    private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, TreatmentResponse $result)
+    {
+
+        if ($this->impressionListener == null) {
+            throw new \Exception("listener is null");
+        }
+
+        if ($result->getListenerData() == null) {
+            throw new \Exception("listener data is null");
+        }
+
+        if ($this->impressionListener != null && $result->getListenerData() != null) {
+            try {
                 $this->impressionListener->accept(new Impression(
                     $key,
                     $bucketingKey,
@@ -38,14 +56,10 @@ class Client implements ClientInterface
                     $result->getListenerData()->getChangeNumber(),
                     $result->getListenerData()->getTimestamp()
                 ), $attributes);
+            } catch (\Exception $exc) {
+                $this->logger->error("failed to invoke impressions listener:");
+                $this->logger->error($exc);
             }
-
-            return $result->getTreatment();
-
-        } catch (\Exception $exc) {
-            $this->logger->error($exc);
-            return "control";
         }
     }
-
 }
