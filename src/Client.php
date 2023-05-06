@@ -36,15 +36,6 @@ class Client implements ClientInterface
 
     private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, TreatmentResponse $result)
     {
-
-        if ($this->impressionListener == null) {
-            throw new \Exception("listener is null");
-        }
-
-        if ($result->getListenerData() == null) {
-            throw new \Exception("listener data is null");
-        }
-
         if ($this->impressionListener != null && $result->getListenerData() != null) {
             try {
                 $this->impressionListener->accept(new Impression(

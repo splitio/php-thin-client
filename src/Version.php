@@ -4,5 +4,5 @@ namespace SplitIO\ThinClient;
 
 class Version
 {
-    const CURRENT = '0.0.1-alpha7';
+    const CURRENT = '0.0.1-alpha8';
 }
