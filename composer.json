@@ -4,7 +4,8 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "SplitIO\\ThinClient\\": "src/"
+            "SplitIO\\ThinClient\\": "src/",
+            "SplitIO\\Test\\": "tests/"
         }
     },
     "authors": [
@@ -17,5 +18,8 @@
         "rybakit/msgpack": "^0.9.1",
         "psr/log": "1 - 3",
         "myclabs/php-enum": "^1.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6"
     }
 }
