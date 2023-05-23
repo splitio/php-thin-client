@@ -3,6 +3,7 @@
 namespace SplitIO\Test\Link\Transfer;
 
 use SplitIO\ThinClient\Link\Transfer\UnixStream;
+use SplitIO\ThinClient\Link\Transfer\ConnectionException;
 use SplitIO\Test\Utils\SocketServerRemoteControl;
 
 use PHPUnit\Framework\TestCase;
@@ -19,7 +20,6 @@ class UnixStreamTest extends TestCase
     public function testHappyExchange(): void
     {
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
-
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
             [
                 'expects' => 'something',
@@ -31,110 +31,108 @@ class UnixStreamTest extends TestCase
             ],
         ]);
 
-        $this->socketServerRC->await();
+        $this->socketServerRC->awaitServerReady();
 
         $realSock = new UnixStream($serverAddress);
 
         $realSock->sendMessage("something");
-        $this->socketServerRC->await();
         $response = $realSock->readMessage();
         $this->assertEquals($response, "something else");
 
         $realSock->sendMessage("another interaction");
-        $this->socketServerRC->await();
         $response = $realSock->readMessage();
         $this->assertEquals($response, "another interaction response");
+
+        $this->socketServerRC->awaitDone(2);
     }
 
+    public function testConnectionBreaksBefore2ndInteraction(): void
+    {
+        $this->expectException(ConnectionException::class);
 
-//    public function testConnectionBreaksBefore2ndInteraction(): void
-//    {
-//        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
-//
-//        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
-//            [
-//                'expects' => 'something',
-//                'returns' => 'something else',
-//            ],
-//            [
-//                'actions' => [
-//                    'pre' => 'break',
-//                ],
-//            ],
-//        ]);
-//
-//        $this->socketServerRC->await();
-//
-//        $realSock = new UnixStream($serverAddress);
-//
-//        $realSock->sendMessage("something");
-//        $this->socketServerRC->await();
-//        $response = $realSock->readMessage();
-//        $this->assertEquals($response, "something else");
-//
-//        $realSock->sendMessage("another interaction");
-//        $this->socketServerRC->await();
-//        $response = $realSock->readMessage();
-//        $this->assertEquals($response, "another interaction response");
-//    }
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
+            [
+                'expects' => 'something',
+                'returns' => 'something else',
+            ],
+            [
+                'actions_pre' => ['type' => 'break'],
+            ],
+        ]);
+
+        $this->socketServerRC->awaitServerReady();
+
+        $realSock = new UnixStream($serverAddress);
+        $realSock->sendMessage("something");
+        $response = $realSock->readMessage();
+        $this->assertEquals($response, "something else");
+
+        $this->socketServerRC->awaitDone(1);
+
+        $realSock->sendMessage("another interaction");
+        $realSock->readMessage();
+
+        $this->fail("should not get here");
+    }
+
+    public function testReadTimeout(): void
+    {
+        $this->expectExceptionObject(new ConnectionException("error reading from socket: Resource temporarily unavailable"));
+
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
+            [
+                'expects' => 'something',
+                'returns' => 'something else',
+            ],
+            [
+                'expects' => 'something as well',
+                'actions_during' => [
+                    'type' => 'delay',
+                    'us' => 2000000
+                ],
+            ],
+        ]);
+
+        $this->socketServerRC->awaitServerReady();
+
+        $realSock = new UnixStream($serverAddress, ['timeout' => ['sec' => 1, 'usec' => 0]]);
+        $realSock->sendMessage("something");
+        $response = $realSock->readMessage();
+        $this->assertEquals($response, "something else");
+
+        $this->socketServerRC->awaitDone(1);
+
+        $realSock->sendMessage('something as well');
+        $realSock->readMessage();
+    }
+
+    public function testLargePayloads(): void
+    {
+        $payloadToSend = str_repeat('qwertyui', 1000000); // ~8mb
+        $paylaodToReceive = str_repeat('asdfghjk', 1000000); // ~8mb
+
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
+            [
+                'expects' => $payloadToSend,
+                'returns' => $paylaodToReceive,
+            ],
+        ]);
+
+        $this->socketServerRC->awaitServerReady();
+
+        $realSock = new UnixStream($serverAddress);
+        $realSock->sendMessage($payloadToSend);
+        $response = $realSock->readMessage();
+        $this->assertEquals($response, $paylaodToReceive);
+
+        $this->socketServerRC->awaitDone(1);
+    }
 
     public function tearDown(): void
     {
         $this->socketServerRC->shutdown();
     }
-
-
 }
-// class UnixStreamTest extends TestCase
-// {
-// 
-//     private $server_script_path = __DIR__ . "/../../utils/stream_server.php";
-//     private $server_socket_path;
-// 
-//     private $procHandle;
-//     private $pipes = [];
-// 
-//     public function setUp(): void
-//     {
-//         $this->server_socket_path = sys_get_temp_dir() . "/php_thin_client_tests.sock";
-//         if (file_exists($this->server_socket_path)) {
-//             unlink($this->server_socket_path);
-//         }
-// 
-//         $descs = [
-//             0 => ['pipe', 'r'],
-//             1 => ['pipe', 'w'],
-//         ];
-//         $this->procHandle = proc_open('php ' . $this->server_script_path, $descs, $this->pipes);
-//         if (!is_resource($this->procHandle)) {
-//             throw new \Exception("failed to create process");
-//         }
-//     }
-// 
-//     public function testHappyExchange(): void
-//     {
-//         fwrite($this->pipes[0], json_encode([
-//             [
-//                 "expect" => "something",
-//                 "return" => "something else",
-//                 "b64Encoded" => false,
-//             ],
-//         ]));
-//         fclose($this->pipes[0]);
-//         $res = fread($this->pipes[1], 2);
-//         $this->assertEquals('OK', $res);
-// 
-//         $realSock = new UnixStream($this->server_socket_path);
-//         $realSock->sendMessage("something");
-//         $res = fread($this->pipes[1], 2);
-//         $this->assertEquals('OK', $res);
-//         
-//         $response = $realSock->readMessage();
-//         $this->assertEquals($response, "something else");
-//     }
-// 
-//     public function tearDown(): void
-//     {
-//         proc_close($this->procHandle);
-//     }
-// }

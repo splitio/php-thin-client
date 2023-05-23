@@ -15,6 +15,7 @@ class SocketServerRemoteControl
     private $subprocessPid;
     private $started = false;
     private $ready = false;
+    private $done = 0;
 
     public function __construct()
     {
@@ -24,6 +25,7 @@ class SocketServerRemoteControl
 
         pcntl_async_signals(true);
         pcntl_signal(SIGUSR1, [$this, 'sigHandler'], true);
+        pcntl_signal(SIGUSR2, [$this, 'sigHandler'], true);
         pcntl_signal(SIGCHLD, [$this, 'sigHandler'], true);
 
         $this->subprocessHandle = proc_open('php ' . $this->server_script_path, $descs, $this->pipes);
@@ -44,27 +46,33 @@ class SocketServerRemoteControl
              unlink(realpath($socketAddress));
         }
 
-        if (stream_set_blocking($this->pipes[0], false) == false) {
-            throw new \Exception("error setting pipe to non-blocking mode");
-        }
-
-        fwrite($this->pipes[0], json_encode([
+        $data = json_encode([
             "setup" => [
                 "socketType" => $socketType,
                 "socketAddress" => $socketAddress,
                 "connectionsToAccept" => $connectionsToAccept,
             ],
             "interactions" => array_map([self::class, 'encodeInteraction'], $interactions),
-        ]));
+        ]);
 
+        $sum = 0;
+        foreach (str_split($data, 4 * 1024) as $chunk) {
+            $sum += fwrite($this->pipes[0], $chunk, strlen($chunk));
+        }
+    
         fclose($this->pipes[0]);
         $this->started = true;
     }
 
-    public function await(): void
+    public function awaitServerReady(): void
     {
         while (!$this->ready) usleep(100000); // sleep 100 millis
         $this->ready = false;
+    }
+
+    public function awaitDone(int $done): void
+    {
+        while ($this->done < $done) usleep(100000); // sleep 100 millis
     }
 
     public function shutdown(): void
@@ -91,6 +99,9 @@ class SocketServerRemoteControl
         switch ($signo) {
         case SIGUSR1:
             $this->ready = true;
+            break;
+        case SIGUSR2:
+            $this->done++;
             break;
         case SIGCHLD:
             pcntl_waitpid($this->subprocessPid, $status);

@@ -6,6 +6,10 @@ use \SplitIO\ThinClient\Link\Transfer\Framing\LengthPrefix;
 use \SplitIO\Test\Utils\SocketServerRemoteControl;
 
 
+class SocketCloseRequested extends \Exception
+{
+}
+
 class SocketServer
 {
     private $interactions;
@@ -30,15 +34,15 @@ class SocketServer
                 throw new \Exception("unknown socket type: " . $setup['socketType']);
         }
 
-        if (($this->socket = socket_create($addressFamily, $socketType, 0)) === false) {
+        if (($this->socket = @socket_create($addressFamily, $socketType, 0)) === false) {
             throw new \Exception("socket_create() failed: reason: " . socket_strerror(socket_last_error()) . "\n");
         }
 
-        if (socket_bind($this->socket, $input["setup"]["socketAddress"]) === false) {
+        if (@socket_bind($this->socket, $input["setup"]["socketAddress"]) === false) {
             throw new \Exception("socket_bind() failed: reason: " . socket_strerror(socket_last_error($this->socket)) . "\n");
         }
 
-        if ((socket_listen($this->socket, 10)) === false) {
+        if ((@socket_listen($this->socket, 10)) === false) {
             throw new \Exception("socket_listen() failed: reason: " . socket_strerror(socket_last_error($this->socket)) . "\n");
         }
     }
@@ -47,36 +51,79 @@ class SocketServer
     {
         posix_kill(posix_getppid(), SIGUSR1);
         while ($this->connectionsToAccept-- > 0) {
-            if (($clientSock = socket_accept($this->socket)) === false) {
-                throw new \Exception("socket_accept() failed: reason: "
-                    . socket_strerror(socket_last_error($this->socket)) . "\n");
+            $clientSock = null;
+            try {
+                if (($clientSock = @socket_accept($this->socket)) === false) {
+                    throw new \Exception("socket_accept() failed: reason: "
+                        . socket_strerror(socket_last_error($this->socket)) . "\n");
+                }
+
+                foreach ($this->interactions as $testCase) {
+                    $this->handleTestCase($testCase, $clientSock);
+                }
+            } catch (SocketCloseRequested $exc) {
+                ($exc); // do nothing without complaining about an unused variable
+            } finally {
+                @socket_shutdown($clientSock);
+                @socket_close($clientSock);
+            }
+        }
+    }
+
+    private function handleTestCase(array $testCase, $clientSock)
+    {
+        try {
+            if (isset($testCase['actions_pre'])) {
+                $this->handleAction($testCase['actions_pre']);
             }
 
-            foreach ($this->interactions as $testCase) {
+            if (isset($testCase['expects'])) {
                 $buf = "";
                 $this->lp->ReadFrame($clientSock, $buf);
-
                 if ($buf != base64_decode($testCase['expects'])) {
                     throw new \Exception("incoming value mismatch. Expected='"
                         . base64_decode($testCase['expects']) . "' / Actual='" . $buf . "'");
                 }
-                if (false === socket_write($clientSock, $this->lp->Frame(base64_decode($testCase["returns"])))) {
+            }
+
+            if (isset($testCase['actions_during'])) {
+                $this->handleAction($testCase['actions_during']);
+            }
+
+            if (isset($testCase['returns'])) {
+                if (false === $this->lp->SendFrame($clientSock, base64_decode($testCase["returns"]))) {
                     throw new \Exception("failed to send 'return' value via socket: "
                         . socket_strerror(socket_last_error($clientSock)) . "\n");
                 }
-                posix_kill(posix_getppid(), SIGUSR1);
             }
+        } finally {
+            posix_kill(posix_getppid(), SIGUSR2);
+        }
+    }
+
+    private function handleAction($action)
+    {
+        switch ($action['type'] ?? 'none') {
+            case 'break':
+                throw new \SocketCloseRequested();
+            case 'delay':
+                usleep($action['us']);
+            case 'none':
+            default:
         }
     }
 
     public function shutdown(): void
     {
-        socket_close($this->socket);
+        @socket_close($this->socket);
     }
 }
 
 // Main execution flow
-$contents = stream_get_contents(STDIN);
+$contents = "";
+while (!feof(STDIN)) {
+    $contents .= fread(STDIN, 9999999);
+}
 fclose(STDIN);
 
 $input = json_decode(trim($contents), true);

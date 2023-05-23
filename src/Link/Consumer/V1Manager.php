@@ -51,6 +51,7 @@ class V1Manager implements Manager
         try {
             return $this->performRPC($rpc);
         } catch (Transfer\ConnectionException $exc) {
+            ($exc);
             // TODO(mredolatti): log
         }
 
