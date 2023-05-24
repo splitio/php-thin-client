@@ -38,9 +38,6 @@ class SocketServer
 
     public function __construct($input)
     {
-
-        fwrite(STDERR, "SERVER -- CONSTRUCTING\n");
-
         $setup = $input["setup"];
 
         $this->parentPid = $setup['parentPid'];
@@ -77,12 +74,7 @@ class SocketServer
 
     public function run(): void
     {
-
-        fwrite(STDERR, "SERVER -- STARTING \n");
-
         posix_kill($this->parentPid, SIGUSR1);
-
-        fwrite(STDERR, "SERVER -- SIGUSR1 SENT \n");
 
         while ($this->connectionsToAccept-- > 0) {
             $clientSock = null;
@@ -167,18 +159,11 @@ class SocketServer
 }
 
 // Main execution flow
-
-fwrite(STDERR, "SERVER PID: " . posix_getpid() . "\n");
-fwrite(STDERR, "PARENT PID: " . posix_getppid() . "\n");
-
-fwrite(STDERR, "SERVER -- READING STDIN\n");
 $contents = "";
 while (!feof(STDIN)) {
     $contents .= fread(STDIN, 9999999);
 }
-fwrite(STDERR, "SERVER -- CLOSING STDIN\n");
 fclose(STDIN);
-fwrite(STDERR, "SERVER -- STDIN CLOSED\n");
 
 $input = json_decode(trim($contents), true);
 $server = null;

@@ -103,8 +103,6 @@ class SocketServerRemoteControl
     // This method is public only so it can be used as a signal handling callback
     public function sigHandler($signo, $siginfo)
     {
-
-        fwrite(STDERR, var_export($siginfo, true) . "\n");
         switch ($signo) {
         case SIGUSR1:
             $this->ready = true;

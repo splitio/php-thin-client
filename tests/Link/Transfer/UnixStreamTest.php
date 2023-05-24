@@ -14,16 +14,12 @@ class UnixStreamTest extends TestCase
 
     public function setUp(): void
     {
-        fwrite(STDERR, "MI PID: " . posix_getpid() . "\n");
-        fwrite(STDERR, "CREATING SOCKET SERVER RC\n");
         $this->socketServerRC = new SocketServerRemoteControl();
-        fwrite(STDERR, "CREATED SOCKET SERVER RC\n");
     }
 
     public function testHappyExchange(): void
     {
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
-        fwrite(STDERR, "STARTING SOCKET SERVER\n");
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
             [
                 'expects' => 'something',
@@ -34,11 +30,8 @@ class UnixStreamTest extends TestCase
                 'returns' => 'another interaction response',
             ],
         ]);
-        fwrite(STDERR, "STARTED SOCKET SERVER\n");
 
         $this->socketServerRC->awaitServerReady();
-
-        fwrite(STDERR, "SOCKET SERVER READY\n");
 
         $realSock = new UnixStream($serverAddress);
 
@@ -50,13 +43,7 @@ class UnixStreamTest extends TestCase
         $response = $realSock->readMessage();
         $this->assertEquals($response, "another interaction response");
 
-
-        fwrite(STDERR, "AWAITIND DONE(2)\n");
-
         $this->socketServerRC->awaitDone(2);
-
-        fwrite(STDERR, "AWAITING DONE(2) OK\n");
-
     }
 
     public function testDeadSocket(): void
@@ -172,8 +159,6 @@ class UnixStreamTest extends TestCase
 
     public function tearDown(): void
     {
-        fwrite(STDERR, "SHUTTING DOWN\n");
         $this->socketServerRC->shutdown();
-        fwrite(STDERR, "SHUTTING DOWN OK\n");
     }
 }
