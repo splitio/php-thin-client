@@ -49,6 +49,7 @@ class SocketServerRemoteControl
 
         $data = json_encode([
             "setup" => [
+                "parentPid" => posix_getpid(),
                 "socketType" => $socketType,
                 "socketAddress" => $socketAddress,
                 "connectionsToAccept" => $connectionsToAccept,

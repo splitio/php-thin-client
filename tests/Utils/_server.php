@@ -34,6 +34,7 @@ class SocketServer
     private $framingWrapper;
     private $connectionsToAccept;
     private $needsExtraBufferSpace;
+    private $parentPid;
 
     public function __construct($input)
     {
@@ -42,6 +43,7 @@ class SocketServer
 
         $setup = $input["setup"];
 
+        $this->parentPid = $setup['parentPid'];
         $this->interactions = $input["interactions"];
         $this->connectionsToAccept = $setup["connectionsToAccept"] ?? 1;
         switch ($setup["socketType"]) {
@@ -78,7 +80,7 @@ class SocketServer
 
         fwrite(STDERR, "SERVER -- STARTING \n");
 
-        posix_kill(posix_getppid(), SIGUSR1);
+        posix_kill($this->parentPid, SIGUSR1);
 
         fwrite(STDERR, "SERVER -- SIGUSR1 SENT \n");
 
@@ -141,7 +143,7 @@ class SocketServer
                 }
             }
         } finally {
-            posix_kill(posix_getppid(), SIGUSR2);
+            posix_kill($this->parentPid, SIGUSR2);
         }
     }
 
