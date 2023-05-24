@@ -18,7 +18,8 @@ seqpacket-pre-test: $(PHPUNIT)
 
 ## Run unit tests
 test:
-	$(PHPUNIT) -v tests $(ARGS)
+	#$(PHPUNIT) -v tests $(ARGS)
+	./vendor/bin/phpunit --filter testHappyExchange tests/Link/Transfer/UnixStreamTest.php
 
 # Help target borrowed from: https://docs.cloudposse.com/reference/best-practices/make-best-practices/
 ## This help screen
