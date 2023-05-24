@@ -14,12 +14,15 @@ class UnixStreamTest extends TestCase
 
     public function setUp(): void
     {
+        echo "CREATING SOCKET SERVER RC\n";
         $this->socketServerRC = new SocketServerRemoteControl();
+        echo "CREATED SOCKET SERVER RC\n";
     }
 
     public function testHappyExchange(): void
     {
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests.sock";
+        echo "STARTING SOCKET SERVER\n";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 1, [
             [
                 'expects' => 'something',
@@ -30,8 +33,11 @@ class UnixStreamTest extends TestCase
                 'returns' => 'another interaction response',
             ],
         ]);
+        echo "STARTED SOCKET SERVER\n";
 
         $this->socketServerRC->awaitServerReady();
+
+        echo "SOCKET SERVER READY\n";
 
         $realSock = new UnixStream($serverAddress);
 
@@ -43,7 +49,13 @@ class UnixStreamTest extends TestCase
         $response = $realSock->readMessage();
         $this->assertEquals($response, "another interaction response");
 
+
+        echo "AWAITIND DONE(2)\n";
+
         $this->socketServerRC->awaitDone(2);
+
+        echo "AWAITING DONE(2) OK\n";
+
     }
 
     public function testDeadSocket(): void
@@ -159,6 +171,8 @@ class UnixStreamTest extends TestCase
 
     public function tearDown(): void
     {
+        echo "SHUTTING DOWN\n";
         $this->socketServerRC->shutdown();
+        echo "SHUTTING DOWN OK\n";
     }
 }
