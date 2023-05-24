@@ -66,13 +66,13 @@ class SocketServerRemoteControl
 
     public function awaitServerReady(): void
     {
-        while (!$this->ready) usleep(100000); // sleep 100 millis
+        while (!$this->ready) usleep(1000); // sleep 1 millisecond
         $this->ready = false;
     }
 
     public function awaitDone(int $done): void
     {
-        while ($this->done < $done) usleep(100000); // sleep 100 millis
+        while ($this->done < $done) usleep(1000); // sleep 100 millisecond
     }
 
     public function shutdown(): void

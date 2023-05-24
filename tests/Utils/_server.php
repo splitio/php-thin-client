@@ -3,6 +3,7 @@
 require_once dirname(__FILE__) . "/../../vendor/autoload.php";
 
 use \SplitIO\ThinClient\Link\Transfer\Framing\LengthPrefix;
+use \SplitIO\ThinClient\Link\Transfer\Framing\Framer;
 use \SplitIO\Test\Utils\SocketServerRemoteControl;
 
 
@@ -10,26 +11,48 @@ class SocketCloseRequested extends \Exception
 {
 }
 
+class NoOpFramingWrapper implements Framer
+{
+
+    const BUF_SIZE = 8 * 1024 * 1024;
+
+    function SendFrame(/*\Socket */$sock, string $message): int
+    {
+        return socket_send($sock, $message, strlen($message), 0);
+    }
+
+    function ReadFrame(/*\Socket */$sock, string &$buffer): int
+    {
+        return socket_recv($sock, $buffer, self::BUF_SIZE, 0);
+    }
+}
+
 class SocketServer
 {
     private $interactions;
     private $socket;
-    private $lp;
+    private $framingWrapper;
     private $connectionsToAccept;
+    private $needsExtraBufferSpace;
 
     public function __construct($input)
     {
         $setup = $input["setup"];
 
-        $this->lp = new LengthPrefix();
         $this->interactions = $input["interactions"];
         $this->connectionsToAccept = $setup["connectionsToAccept"] ?? 1;
         switch ($setup["socketType"]) {
             case SocketServerRemoteControl::UNIX_STREAM:
+                $this->framingWrapper = new LengthPrefix();
                 $addressFamily = AF_UNIX;
                 $socketType = SOCK_STREAM;
                 break;
             case SocketServerRemoteControl::UNIX_SEQPACKET:
+                $this->needsExtraBufferSpace = true;
+                $this->framingWrapper = new NoOpFramingWrapper();
+                $addressFamily = AF_UNIX;
+                $socketType = SOCK_SEQPACKET;
+                break;
             default:
                 throw new \Exception("unknown socket type: " . $setup['socketType']);
         }
@@ -53,14 +76,26 @@ class SocketServer
         while ($this->connectionsToAccept-- > 0) {
             $clientSock = null;
             try {
+
                 if (($clientSock = @socket_accept($this->socket)) === false) {
                     throw new \Exception("socket_accept() failed: reason: "
                         . socket_strerror(socket_last_error($this->socket)) . "\n");
                 }
 
+                // SEQPACKET sockets hava datagram-like messages boundaries & need bigger buffers for larger transfers.
+                if ($this->needsExtraBufferSpace) {
+                    if (@socket_set_option($clientSock, SOL_SOCKET, SO_SNDBUF, NoOpFramingWrapper::BUF_SIZE) == false) {
+                        throw new \Exception("error updating socket buffer: " . socket_strerror(socket_last_error($this->socket)));
+                    }
+                    if (@socket_set_option($clientSock, SOL_SOCKET, SO_RCVBUF, NoOpFramingWrapper::BUF_SIZE) == false) {
+                        throw new \Exception("error updating socket buffer: " . socket_strerror(socket_last_error($this->socket)));
+                    }
+                }
+
                 foreach ($this->interactions as $testCase) {
                     $this->handleTestCase($testCase, $clientSock);
                 }
+
             } catch (SocketCloseRequested $exc) {
                 ($exc); // do nothing without complaining about an unused variable
             } finally {
@@ -79,7 +114,7 @@ class SocketServer
 
             if (isset($testCase['expects'])) {
                 $buf = "";
-                $this->lp->ReadFrame($clientSock, $buf);
+                $this->framingWrapper->ReadFrame($clientSock, $buf);
                 if ($buf != base64_decode($testCase['expects'])) {
                     throw new \Exception("incoming value mismatch. Expected='"
                         . base64_decode($testCase['expects']) . "' / Actual='" . $buf . "'");
@@ -91,7 +126,7 @@ class SocketServer
             }
 
             if (isset($testCase['returns'])) {
-                if (false === $this->lp->SendFrame($clientSock, base64_decode($testCase["returns"]))) {
+                if (false === $this->framingWrapper->SendFrame($clientSock, base64_decode($testCase["returns"]))) {
                     throw new \Exception("failed to send 'return' value via socket: "
                         . socket_strerror(socket_last_error($clientSock)) . "\n");
                 }
@@ -108,6 +143,7 @@ class SocketServer
                 throw new \SocketCloseRequested();
             case 'delay':
                 usleep($action['us']);
+                break;
             case 'none':
             default:
         }
