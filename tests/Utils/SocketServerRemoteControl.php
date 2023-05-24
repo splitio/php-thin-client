@@ -16,6 +16,7 @@ class SocketServerRemoteControl
     private $started = false;
     private $ready = false;
     private $done = 0;
+    private $finished = false;
 
     public function __construct()
     {
@@ -75,6 +76,11 @@ class SocketServerRemoteControl
         while ($this->done < $done) usleep(1000); // sleep 100 millisecond
     }
 
+    public function awaitFinished(): void
+    {
+        while (!$this->finished) usleep(1000);
+    }
+
     public function shutdown(): void
     {
         proc_close($this->subprocessHandle);
@@ -108,6 +114,7 @@ class SocketServerRemoteControl
             if (pcntl_wifexited($status) && pcntl_wexitstatus($status) != 0) {
                 throw new \Exception("socket server ended in error");
             }
+            $this->finished = true;
             break;
         default:
             throw new \Exception("Unexpected signal $signo: " . var_export($siginfo, true));

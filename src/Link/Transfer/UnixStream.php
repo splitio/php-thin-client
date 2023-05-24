@@ -15,8 +15,7 @@ class UnixStream implements RawConnection
 
         if (!$this->sock = @socket_create(AF_UNIX, SOCK_STREAM, 0)) {
             throw new ConnectionException(
-                "failed to create a socket: "
-                    . Helpers::getSocketError(null)
+                "failed to create a socket: " . Helpers::getSocketError(null)
             );
         }
 
@@ -27,7 +26,7 @@ class UnixStream implements RawConnection
 
         if (!@socket_connect($this->sock, $this->targetSockFN)) {
             throw new ConnectionException(
-                "failed to connect to remote socket $this->targetSockFN:"
+                "failed to connect to remote socket $this->targetSockFN: "
                     . Helpers::getSocketError($this->sock)
             );
         }

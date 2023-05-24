@@ -14,6 +14,10 @@ class UnixSeqPacketTest extends TestCase
 
     public function setUp(): void
     {
+        if (php_uname('s') != 'Linux') {
+            $this->markTestSkipped('Unix/SEQPACKET tests can only run on GNU/Linux');
+        }
+
         $this->socketServerRC = new SocketServerRemoteControl();
     }
 
@@ -46,10 +50,35 @@ class UnixSeqPacketTest extends TestCase
         $this->socketServerRC->awaitDone(2);
     }
 
-    /** @group failing */
+    public function testDeadSocket(): void
+    {
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
+
+        $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $serverAddress: Connection refused"));
+
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->awaitServerReady();
+        $this->socketServerRC->awaitFinished();
+
+        new UnixPacket($serverAddress);
+    }
+
+    public function testNoDaemonRunning(): void
+    {
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
+        $tamperedAddress = $serverAddress . "someExtraChars";
+
+        $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $tamperedAddress: No such file or directory"));
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->awaitServerReady();
+        $this->socketServerRC->awaitFinished();
+
+        new UnixPacket($tamperedAddress);
+    }
+
     public function testConnectionBreaksBefore2ndInteraction(): void
     {
-        $this->expectException(ConnectionException::class);
+        $this->expectExceptionObject(new ConnectionException("error writing to socket: Broken pipe"));
 
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 1, [
@@ -70,6 +99,7 @@ class UnixSeqPacketTest extends TestCase
         $this->assertEquals($response, "something else");
 
         $this->socketServerRC->awaitDone(1);
+        $this->socketServerRC->awaitFinished();
 
         $realSock->sendMessage("another interaction");
         $realSock->readMessage();
@@ -112,8 +142,8 @@ class UnixSeqPacketTest extends TestCase
 
     public function testLargePayloads(): void
     {
-        $payloadToSend = str_repeat('qwertyui', 100000); // ~8mb
-        $paylaodToReceive = str_repeat('asdfghjk', 100000); // ~8mb
+        $payloadToSend = str_repeat('qwer', 1000000); // ~4mb
+        $paylaodToReceive = str_repeat('asdf', 1000000); // ~4mb
 
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 1, [

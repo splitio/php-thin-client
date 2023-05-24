@@ -46,6 +46,32 @@ class UnixStreamTest extends TestCase
         $this->socketServerRC->awaitDone(2);
     }
 
+    public function testDeadSocket(): void
+    {
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
+
+        $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $serverAddress: Connection refused"));
+
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->awaitServerReady();
+        $this->socketServerRC->awaitFinished();
+
+        new UnixStream($serverAddress);
+    }
+
+    public function testNoDaemonRunning(): void
+    {
+        $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
+        $tamperedAddress = $serverAddress . "someExtraChars";
+
+        $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $tamperedAddress: No such file or directory"));
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->awaitServerReady();
+        $this->socketServerRC->awaitFinished();
+
+        new UnixStream($tamperedAddress);
+    }
+
     public function testConnectionBreaksBefore2ndInteraction(): void
     {
         $this->expectException(ConnectionException::class);
