@@ -166,6 +166,9 @@ class SocketServer
 
 // Main execution flow
 
+fwrite(STDERR, "SERVER PID: " . posix_getpid() . "\n");
+fwrite(STDERR, "PARENT PID: " . posix_getppid() . "\n");
+
 fwrite(STDERR, "SERVER -- READING STDIN\n");
 $contents = "";
 while (!feof(STDIN)) {

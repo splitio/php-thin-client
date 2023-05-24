@@ -14,6 +14,7 @@ class UnixStreamTest extends TestCase
 
     public function setUp(): void
     {
+        fwrite(STDERR, "MI PID: " . posix_getpid() . "\n");
         fwrite(STDERR, "CREATING SOCKET SERVER RC\n");
         $this->socketServerRC = new SocketServerRemoteControl();
         fwrite(STDERR, "CREATED SOCKET SERVER RC\n");
