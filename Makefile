@@ -18,7 +18,7 @@ seqpacket-pre-test: $(PHPUNIT)
 
 ## Run unit tests
 test:
-	$(PHPUNIT) tests $(ARGS)
+	$(PHPUNIT) -v tests $(ARGS)
 
 # Help target borrowed from: https://docs.cloudposse.com/reference/best-practices/make-best-practices/
 ## This help screen
