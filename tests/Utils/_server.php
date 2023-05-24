@@ -37,6 +37,9 @@ class SocketServer
 
     public function __construct($input)
     {
+
+        fwrite(STDERR, "SERVER -- CONSTRUCTING\n");
+
         $setup = $input["setup"];
 
         $this->interactions = $input["interactions"];
@@ -72,7 +75,13 @@ class SocketServer
 
     public function run(): void
     {
+
+        fwrite(STDERR, "SERVER -- STARTING \n");
+
         posix_kill(posix_getppid(), SIGUSR1);
+
+        fwrite(STDERR, "SERVER -- SIGUSR1 SENT \n");
+
         while ($this->connectionsToAccept-- > 0) {
             $clientSock = null;
             try {
@@ -156,11 +165,15 @@ class SocketServer
 }
 
 // Main execution flow
+
+fwrite(STDERR, "SERVER -- READING STDIN\n");
 $contents = "";
 while (!feof(STDIN)) {
     $contents .= fread(STDIN, 9999999);
 }
+fwrite(STDERR, "SERVER -- CLOSING STDIN\n");
 fclose(STDIN);
+fwrite(STDERR, "SERVER -- STDIN CLOSED\n");
 
 $input = json_decode(trim($contents), true);
 $server = null;
