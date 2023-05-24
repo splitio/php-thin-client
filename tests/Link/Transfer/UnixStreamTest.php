@@ -52,7 +52,7 @@ class UnixStreamTest extends TestCase
 
         $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $serverAddress: Connection refused"));
 
-        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 0, []);
         $this->socketServerRC->awaitServerReady();
         $this->socketServerRC->awaitFinished();
 
@@ -65,7 +65,7 @@ class UnixStreamTest extends TestCase
         $tamperedAddress = $serverAddress . "someExtraChars";
 
         $this->expectExceptionObject(new ConnectionException("failed to connect to remote socket $tamperedAddress: No such file or directory"));
-        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 0, []);
+        $this->socketServerRC->start(SocketServerRemoteControl::UNIX_STREAM, $serverAddress, 0, []);
         $this->socketServerRC->awaitServerReady();
         $this->socketServerRC->awaitFinished();
 

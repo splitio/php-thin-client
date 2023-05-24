@@ -23,6 +23,8 @@ class UnixSeqPacketTest extends TestCase
 
     public function testHappyExchange(): void
     {
+
+        throw new \Exception("AAAAAAAAA");
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 1, [
             [
