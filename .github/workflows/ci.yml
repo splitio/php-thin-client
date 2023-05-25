@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   test:
-    name: Build
+    name: Run unit tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
