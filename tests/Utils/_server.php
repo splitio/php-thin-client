@@ -117,7 +117,7 @@ class SocketServer
                 $this->framingWrapper->ReadFrame($clientSock, $buf);
                 if ($buf != base64_decode($testCase['expects'])) {
                     throw new \Exception("incoming value mismatch. Expected='"
-                        . base64_decode($testCase['expects']) . "' / Actual='" . $buf . "'");
+                        . self::limitString(base64_decode($testCase['expects'])) . "' / Actual='" . self::limitString($buf) . "'");
                 }
             }
 
@@ -134,6 +134,18 @@ class SocketServer
         } finally {
             posix_kill(posix_getppid(), SIGUSR2);
         }
+    }
+
+    private static function limitString($str, $limit = 100)
+    {
+        if (is_null($str)) {
+            return null;
+        }
+
+        if (strlen($str) > $limit) {
+            return substr($str, 0, $limit) . '...';
+        }
+        return $str;
     }
 
     private function handleAction($action)
