@@ -42,7 +42,7 @@ jobs:
 
       - name: Build
         run: |
-          make test-args ARGS='-v tests/Link/Transfer/UnixStreamTest.php'
+          make test #-args ARGS='-v tests/Link/Transfer/UnixStreamTest.php'
 
       - name: Set VERSION env
         run: echo "VERSION=$(cat src/Version.php | grep 'const CURRENT' | cut -d "'" -f 2 | sed "s/'//g")" >> $GITHUB_ENV

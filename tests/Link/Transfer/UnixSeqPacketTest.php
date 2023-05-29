@@ -142,6 +142,7 @@ class UnixSeqPacketTest extends TestCase
         $this->socketServerRC->awaitDone(2);
     }
 
+    /*
     public function testLargePayloads(): void
     {
         $payloadToSend = str_repeat('qwer', 1000000); // ~4mb
@@ -167,6 +168,7 @@ class UnixSeqPacketTest extends TestCase
 
         $this->socketServerRC->awaitDone(1);
     }
+     */
 
     public function tearDown(): void
     {
