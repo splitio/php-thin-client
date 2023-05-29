@@ -40,6 +40,11 @@ jobs:
           composer install --prefer-dist
           composer update
 
+      - name: Print max send & receive buffers (for reference)
+        run: |
+          echo "Max recv buffer size: $(cat /proc/sys/net/core/rmem_max)"
+          echo "Max send buffer size: $(cat /proc/sys/net/core/wmem_max)"
+
       - name: Test
         env:
           DEBUG: true
