@@ -52,7 +52,7 @@ class SocketServerRemoteControl
         }
 
         if (in_array($socketType, [self::UNIX_STREAM, self::UNIX_SEQPACKET]) && file_exists($socketAddress)) {
-             unlink(realpath($socketAddress));
+            unlink(realpath($socketAddress));
         }
 
         $data = json_encode([
@@ -71,12 +71,11 @@ class SocketServerRemoteControl
         foreach (str_split($data, 4 * 1024) as $chunk) {
             $sum += fwrite($this->pipes[0], $chunk, strlen($chunk));
         }
-    
+
         fclose($this->pipes[0]);
         $this->started = true;
 
         debug("started");
-
     }
 
     public function awaitServerReady(): void
@@ -101,8 +100,35 @@ class SocketServerRemoteControl
         if (!$this->started) {
             fclose($this->pipes[0]);
         }
-        proc_terminate($this->subprocessHandle);
-        debug("process closed");
+
+        // proc_terminate is async, we need to wait (but not too long), and kill the server
+        // if it doesn't gracefully quit
+        try {
+            proc_terminate($this->subprocessHandle);
+            $status = proc_get_status($this->subprocessHandle);
+            if (!$status['running']) {
+                return;
+            }
+
+            sleep(1);
+            $status = proc_get_status($this->subprocessHandle);
+            if (!$status['running']) {
+                return;
+            }
+
+            debug("process didn't shutdown gracefully. sending SIGKILL");
+            proc_terminate($this->subprocessHandle, SIGKILL);
+            sleep(1);
+            $status = proc_get_status($this->subprocessHandle);
+            if (!$status['running']) {
+                return;
+            }
+
+            debug("process didn't finish 1 second after being killed");
+            
+        } finally {
+            debug("process closed");
+        }
     }
 
     private static function encodeInteraction(array $interaction): array
@@ -123,21 +149,21 @@ class SocketServerRemoteControl
     {
         debug(var_export($siginfo, true));
         switch ($signo) {
-        case SIGUSR1:
-            $this->ready = true;
-            break;
-        case SIGUSR2:
-            $this->done++;
-            break;
-        case SIGCHLD:
-            pcntl_waitpid($this->subprocessPid, $status);
-            if (pcntl_wifexited($status) && pcntl_wexitstatus($status) != 0) {
-                throw new \Exception("socket server ended in error");
-            }
-            $this->finished = true;
-            break;
-        default:
-            throw new \Exception("Unexpected signal $signo: " . var_export($siginfo, true));
+            case SIGUSR1:
+                $this->ready = true;
+                break;
+            case SIGUSR2:
+                $this->done++;
+                break;
+            case SIGCHLD:
+                pcntl_waitpid($this->subprocessPid, $status);
+                if (pcntl_wifexited($status) && pcntl_wexitstatus($status) != 0) {
+                    throw new \Exception("socket server ended in error");
+                }
+                $this->finished = true;
+                break;
+            default:
+                throw new \Exception("Unexpected signal $signo: " . var_export($siginfo, true));
         }
     }
 }
