@@ -136,7 +136,7 @@ class UnixStreamTest extends TestCase
         $realSock->sendMessage('something as well');
         $realSock->readMessage();
     }
-    /*
+
     public function testLargePayloads(): void
     {
         $payloadToSend = str_repeat('qwertyui', 1000000); // ~8mb
@@ -159,7 +159,6 @@ class UnixStreamTest extends TestCase
 
         $this->socketServerRC->awaitDone(1);
     }
-     */
 
     public function tearDown(): void
     {
