@@ -161,8 +161,8 @@ class UnixSeqPacketTest extends TestCase
         $this->socketServerRC->awaitServerReady();
 
         $realSock = new UnixPacket($serverAddress, [
-            'sendBufferSize' => 8000000,
-            'recvBufferSize' => 8000000,
+            'sendBufferSize' => 4000000,
+            'recvBufferSize' => 4000000,
         ]);
         $realSock->sendMessage($payloadToSend);
         $response = $realSock->readMessage();

@@ -12,9 +12,9 @@ deps:
 $(PHPUNIT): deps
 
 ## Update window sizes for send/receive buffers used in sockets API (required for UTs)
-seqpacket-pre-test: $(PHPUNIT)
-	sudo echo '2097152' > /proc/sys/net/core/wmem_max
-	sudo echo '2097152' > /proc/sys/net/core/rmem_max
+seqpacket-pre-test:
+	sudo echo '8000000' > /proc/sys/net/core/wmem_max
+	sudo echo '8000000' > /proc/sys/net/core/rmem_max
 
 ## Run all tests (args optional)
 test:
