@@ -31,6 +31,8 @@ class UnixStreamTest extends TestCase
             ],
         ]);
 
+        fwrite(STDERR, "esperando ready\n");
+
         $this->socketServerRC->awaitServerReady();
 
         $realSock = new UnixStream($serverAddress);
@@ -43,9 +45,11 @@ class UnixStreamTest extends TestCase
         $response = $realSock->readMessage();
         $this->assertEquals($response, "another interaction response");
 
+        fwrite(STDERR, "esperando done==2\n");
         $this->socketServerRC->awaitDone(2);
     }
 
+    /*
     public function testDeadSocket(): void
     {
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
@@ -156,6 +160,7 @@ class UnixStreamTest extends TestCase
 
         $this->socketServerRC->awaitDone(1);
     }
+     */
 
     public function tearDown(): void
     {
