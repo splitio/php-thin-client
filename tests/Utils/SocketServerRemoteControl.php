@@ -34,6 +34,8 @@ class SocketServerRemoteControl
             throw new \Exception("failed to create process");
         }
 
+        fwrite(STDERR, "process created\n");
+
         $this->subprocessPid = proc_get_status($this->subprocessHandle)['pid'];
     }
 
@@ -49,12 +51,15 @@ class SocketServerRemoteControl
 
         $data = json_encode([
             "setup" => [
+                "parentPid" => posix_getpid(),
                 "socketType" => $socketType,
                 "socketAddress" => $socketAddress,
                 "connectionsToAccept" => $connectionsToAccept,
             ],
             "interactions" => array_map([self::class, 'encodeInteraction'], $interactions),
         ]);
+
+        fwrite(STDERR, "writing stdin \n");
 
         $sum = 0;
         foreach (str_split($data, 4 * 1024) as $chunk) {
@@ -63,6 +68,9 @@ class SocketServerRemoteControl
     
         fclose($this->pipes[0]);
         $this->started = true;
+
+        fwrite(STDERR, "started\n");
+
     }
 
     public function awaitServerReady(): void
@@ -102,6 +110,8 @@ class SocketServerRemoteControl
     // This method is public only so it can be used as a signal handling callback
     public function sigHandler($signo, $siginfo)
     {
+
+        fwrite(STDERR, var_export($siginfo, true) . "\n");
         switch ($signo) {
         case SIGUSR1:
             $this->ready = true;
