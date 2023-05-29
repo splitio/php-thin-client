@@ -2,6 +2,12 @@
 
 namespace SplitIO\Test\Utils;
 
+function debug($str)
+{
+    if (getenv("DEBUG") == "true") {
+        fwrite(STDERR, $str . "\n");
+    }
+}
 
 class SocketServerRemoteControl
 {
@@ -34,7 +40,7 @@ class SocketServerRemoteControl
             throw new \Exception("failed to create process");
         }
 
-        fwrite(STDERR, "process created\n");
+        debug("process created");
 
         $this->subprocessPid = proc_get_status($this->subprocessHandle)['pid'];
     }
@@ -59,7 +65,7 @@ class SocketServerRemoteControl
             "interactions" => array_map([self::class, 'encodeInteraction'], $interactions),
         ]);
 
-        fwrite(STDERR, "writing stdin \n");
+        debug("writing stdin");
 
         $sum = 0;
         foreach (str_split($data, 4 * 1024) as $chunk) {
@@ -69,7 +75,7 @@ class SocketServerRemoteControl
         fclose($this->pipes[0]);
         $this->started = true;
 
-        fwrite(STDERR, "started\n");
+        debug("started");
 
     }
 
@@ -91,7 +97,12 @@ class SocketServerRemoteControl
 
     public function shutdown(): void
     {
-        proc_close($this->subprocessHandle);
+        debug("shutting down");
+        if (!$this->started) {
+            fclose($this->pipes[0]);
+        }
+        proc_terminate($this->subprocessHandle);
+        debug("process closed");
     }
 
     private static function encodeInteraction(array $interaction): array
@@ -110,8 +121,7 @@ class SocketServerRemoteControl
     // This method is public only so it can be used as a signal handling callback
     public function sigHandler($signo, $siginfo)
     {
-
-        fwrite(STDERR, var_export($siginfo, true) . "\n");
+        debug(var_export($siginfo, true));
         switch ($signo) {
         case SIGUSR1:
             $this->ready = true;

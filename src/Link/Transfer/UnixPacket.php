@@ -28,14 +28,25 @@ class UnixPacket implements RawConnection
         }
 
         if (isset($options['sendBufferSize'])) {
-            if (@socket_set_option($this->sock, SOL_SOCKET, SO_SNDBUF, $options['sendBufferSize']) == false) {
+            if (!@socket_set_option($this->sock, SOL_SOCKET, SO_SNDBUF, $options['sendBufferSize'])) {
                 throw new ConnectionException("cannot allocate requested send-buffer size. please check your OS config");
             }
+            $curr = @socket_get_option($this->sock, SOL_SOCKET, SO_SNDBUF);
+            if ($curr != $options['sendBufferSize']) {
+                throw new ConnectionException(sprintf("send-buffer allocation failed. Expected=%d, Actual=%d",
+                    $options['sendBufferSize'], $curr));
+            }
+
         }
 
         if (isset($options['recvBufferSize'])) {
-            if (@socket_set_option($this->sock, SOL_SOCKET, SO_RCVBUF, $options['recvBufferSize']) == false) {
+            if (!@socket_set_option($this->sock, SOL_SOCKET, SO_RCVBUF, $options['recvBufferSize'])) {
                 throw new ConnectionException("cannot allocate requested receive-buffer size. please check your OS config");
+            $curr = @socket_get_option($this->sock, SOL_SOCKET, SO_RCVBUF);
+            if ($curr != $options['recvBufferSize']) {
+                throw new ConnectionException(sprintf("receive-buffer allocation failed. Expected=%d, Actual=%d",
+                    $options['recvBufferSize'], $curr));
+            }
             }
             $this->maxRecvSize = $options['recvBufferSize'];
         }

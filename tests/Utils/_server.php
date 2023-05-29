@@ -6,6 +6,12 @@ use \SplitIO\ThinClient\Link\Transfer\Framing\LengthPrefix;
 use \SplitIO\ThinClient\Link\Transfer\Framing\Framer;
 use \SplitIO\Test\Utils\SocketServerRemoteControl;
 
+function debug($str)
+{
+    if (getenv("DEBUG") == "true") {
+        fwrite(STDERR, $str . "\n");
+    }
+}
 
 class SocketCloseRequested extends \Exception
 {
@@ -39,7 +45,7 @@ class SocketServer
     public function __construct($input)
     {
 
-        fwrite(STDERR, "SERVER -- CONSTRUCTING\n");
+        debug("SERVER -- CONSTRUCTING");
 
         $setup = $input["setup"];
 
@@ -78,11 +84,11 @@ class SocketServer
     public function run(): void
     {
 
-        fwrite(STDERR, "SERVER -- STARTING \n");
+        debug("SERVER -- STARTING");
 
         posix_kill($this->parentPid, SIGUSR1);
 
-        fwrite(STDERR, "SERVER -- SIGUSR1 SENT \n");
+        debug("SERVER -- SIGUSR1 SENT");
 
         while ($this->connectionsToAccept-- > 0) {
             $clientSock = null;
@@ -180,17 +186,17 @@ class SocketServer
 
 // Main execution flow
 
-fwrite(STDERR, "SERVER PID: " . posix_getpid() . "\n");
-fwrite(STDERR, "PARENT PID: " . posix_getppid() . "\n");
+debug("SERVER -- PID: " . posix_getpid());
+debug("SERVER -- PARENT PID: " . posix_getppid());
 
-fwrite(STDERR, "SERVER -- READING STDIN\n");
+debug("SERVER -- READING STDIN");
 $contents = "";
 while (!feof(STDIN)) {
     $contents .= fread(STDIN, 9999999);
 }
-fwrite(STDERR, "SERVER -- CLOSING STDIN\n");
+debug("SERVER -- CLOSING STDIN");
 fclose(STDIN);
-fwrite(STDERR, "SERVER -- STDIN CLOSED\n");
+debug("SERVER -- STDIN CLOSED");
 
 $input = json_decode(trim($contents), true);
 $server = null;
@@ -200,7 +206,7 @@ try {
     $server->run();
 } catch (\Exception $exc) {
     $exitCode = 1;
-    fwrite(STDERR, $exc);
+    debug("SERVER -- " . $exc);
 } finally {
     $server->shutdown();
 }
