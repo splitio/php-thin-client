@@ -42,7 +42,7 @@ jobs:
 
       - name: Test
         env:
-          - DEBUG: true
+          DEBUG: true
         run: |
           make test #-args ARGS='-v tests/Link/Transfer/UnixStreamTest.php'
 
