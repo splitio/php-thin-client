@@ -50,7 +50,7 @@ jobs:
           DEBUG: true
           GHA: true
         run: |
-          make test
+          make test ARGS='-v'
 
       - name: Set VERSION env
         run: echo "VERSION=$(cat src/Version.php | grep 'const CURRENT' | cut -d "'" -f 2 | sed "s/'//g")" >> $GITHUB_ENV
