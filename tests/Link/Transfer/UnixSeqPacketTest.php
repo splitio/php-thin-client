@@ -22,6 +22,7 @@ class UnixSeqPacketTest extends TestCase
         if (getenv("DEBUG") == true) {
             fwrite(STDERR, "preparing socket server for test: `" . get_class($this)."::".$this->getName()."`\n");
         }
+
         $this->socketServerRC = new SocketServerRemoteControl();
     }
 
