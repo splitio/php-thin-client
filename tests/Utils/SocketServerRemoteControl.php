@@ -34,6 +34,8 @@ class SocketServerRemoteControl
             throw new \Exception("failed to create process");
         }
 
+        fwrite(STDERR, "process created\n");
+
         $this->subprocessPid = proc_get_status($this->subprocessHandle)['pid'];
     }
 
@@ -56,6 +58,8 @@ class SocketServerRemoteControl
             "interactions" => array_map([self::class, 'encodeInteraction'], $interactions),
         ]);
 
+        fwrite(STDERR, "writing stdin \n");
+
         $sum = 0;
         foreach (str_split($data, 4 * 1024) as $chunk) {
             $sum += fwrite($this->pipes[0], $chunk, strlen($chunk));
@@ -63,6 +67,9 @@ class SocketServerRemoteControl
     
         fclose($this->pipes[0]);
         $this->started = true;
+
+        fwrite(STDERR, "started\n");
+
     }
 
     public function awaitServerReady(): void
