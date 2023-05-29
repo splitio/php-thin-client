@@ -31,8 +31,6 @@ class UnixStreamTest extends TestCase
             ],
         ]);
 
-        fwrite(STDERR, "esperando ready\n");
-
         $this->socketServerRC->awaitServerReady();
 
         $realSock = new UnixStream($serverAddress);
@@ -45,7 +43,6 @@ class UnixStreamTest extends TestCase
         $response = $realSock->readMessage();
         $this->assertEquals($response, "another interaction response");
 
-        fwrite(STDERR, "esperando done==2\n");
         $this->socketServerRC->awaitDone(2);
     }
 

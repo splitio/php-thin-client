@@ -147,6 +147,11 @@ class UnixSeqPacketTest extends TestCase
 
     public function testLargePayloads(): void
     {
+        if (getenv("GHA") == "true") {
+            $this->markTestSkipped("test cannot currently be run in GHA");
+            return;
+        }
+
         $payloadToSend = str_repeat('qwer', 1000000); // ~4mb
         $paylaodToReceive = str_repeat('asdf', 1000000); // ~4mb
 

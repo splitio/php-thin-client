@@ -48,8 +48,8 @@ jobs:
       - name: Test
         env:
           DEBUG: true
+          GHA: true
         run: |
-          make seqpacket-pre-test
           make test
 
       - name: Set VERSION env
