@@ -123,7 +123,7 @@ class UnixStreamTest extends TestCase
                     'type' => 'delay',
                     'us' => 2000000
                 ],
-            ],
+            ]
         ]);
 
         $this->socketServerRC->awaitServerReady();
@@ -137,6 +137,7 @@ class UnixStreamTest extends TestCase
 
         $realSock->sendMessage('something as well');
         $realSock->readMessage();
+        $this->socketServerRC->awaitDone(2);
     }
 
     public function testLargePayloads(): void

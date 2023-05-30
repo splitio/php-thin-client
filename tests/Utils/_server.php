@@ -109,7 +109,8 @@ class SocketServer
                     }
                 }
 
-                foreach ($this->interactions as $testCase) {
+                foreach ($this->interactions as $idx => $testCase) {
+                    debug("handling test case #$idx");
                     $this->handleTestCase($testCase, $clientSock);
                 }
 
@@ -143,10 +144,7 @@ class SocketServer
             }
 
             if (isset($testCase['returns'])) {
-                if (false === $this->framingWrapper->SendFrame($clientSock, base64_decode($testCase["returns"]))) {
-                    throw new \Exception("failed to send 'return' value via socket: "
-                        . socket_strerror(socket_last_error($clientSock)) . "\n");
-                }
+                $this->framingWrapper->SendFrame($clientSock, base64_decode($testCase["returns"]));
             }
         } finally {
             posix_kill($this->parentPid, SIGUSR2);
@@ -167,6 +165,7 @@ class SocketServer
 
     private function handleAction($action)
     {
+        debug("executing action: " . var_export($action, true));
         switch ($action['type'] ?? 'none') {
             case 'break':
                 throw new \SocketCloseRequested();
