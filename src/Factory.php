@@ -19,6 +19,7 @@ class Factory implements FactoryInterface
             $config->transfer(),
             $config->serialization(),
             $config->utils(),
+            $this->logger,
         );
     }
 

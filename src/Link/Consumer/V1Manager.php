@@ -19,13 +19,19 @@ class V1Manager implements Manager
     private /*TransferConfig*/ $transferConfig;
     private /*UtilsConfig*/ $utilsConfig;
     private /*string*/ $id;
+    private /*LoggerInterface*/ $logger;
 
 
-    public function __construct(TransferConfig $transferConfig, SerializationConfig $serializationConfig, UtilsConfig $utilsConfig)
-    {
+    public function __construct(
+        TransferConfig $transferConfig,
+        SerializationConfig $serializationConfig,
+        UtilsConfig $utilsConfig,
+        \Psr\Log\LoggerInterface $logger
+    ) {
         // save these 2 for future reconnects
         $this->transferConfig = $transferConfig;
         $this->utilsConfig = $utilsConfig;
+        $this->logger = $logger;
 
         $this->id = 'someId'; /*TODO*/
 
@@ -43,7 +49,10 @@ class V1Manager implements Manager
 
     private function register(string $id, bool $impressionFeedback)
     {
-        return $this->rpcWithReconnect(RPC::forRegister($id, new Protocol\V1\RegisterFlags($impressionFeedback)));
+        // this is performed without retries to avoid an endless loop,
+        // since register should occur only once per connection. if it fails,
+        // it's not worth retrying for this single evaluation, and probably better off to just return 'control'.
+        return $this->performRPC(RPC::forRegister($id, new Protocol\V1\RegisterFlags($impressionFeedback)));
     }
 
     private function rpcWithReconnect(RPC $rpc): array
@@ -51,8 +60,8 @@ class V1Manager implements Manager
         try {
             return $this->performRPC($rpc);
         } catch (Transfer\ConnectionException $exc) {
-            ($exc);
-            // TODO(mredolatti): log
+            $this->logger->error("an error occurred while performing an RPC");
+            $this->logger->error($exc);
         }
 
         // TODO(mredolatti): shutdown current conn?
