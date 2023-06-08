@@ -10,7 +10,6 @@ class Helpers
         if ($errc == 0) {
             return "no error returned";
         }
-
         return socket_strerror($errc);
     }
 }

@@ -36,21 +36,23 @@ class Client implements ClientInterface
 
     private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, TreatmentResponse $result)
     {
-        if ($this->impressionListener != null && $result->getListenerData() != null) {
-            try {
-                $this->impressionListener->accept(new Impression(
-                    $key,
-                    $bucketingKey,
-                    $feature,
-                    $result->getTreatment(),
-                    $result->getListenerData()->getLabel(),
-                    $result->getListenerData()->getChangeNumber(),
-                    $result->getListenerData()->getTimestamp()
-                ), $attributes);
-            } catch (\Exception $exc) {
-                $this->logger->error("failed to invoke impressions listener:");
-                $this->logger->error($exc);
-            }
+        if ($this->impressionListener == null || $result->getListenerData() == null) {
+            return;
+        }
+
+        try {
+            $this->impressionListener->accept(new Impression(
+                $key,
+                $bucketingKey,
+                $feature,
+                $result->getTreatment(),
+                $result->getListenerData()->getLabel(),
+                $result->getListenerData()->getChangeNumber(),
+                $result->getListenerData()->getTimestamp()
+            ), $attributes);
+        } catch (\Exception $exc) {
+            $this->logger->error("failed to invoke impressions listener:");
+            $this->logger->error($exc);
         }
     }
 }

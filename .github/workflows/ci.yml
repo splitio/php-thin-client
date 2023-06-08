@@ -1,0 +1,83 @@
+name: ci
+on:
+  pull_request:
+    branches:
+      - dev-7.3
+  push:
+    branches:
+      - dev-7.3
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - '7.3'
+          - '8.2'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.version }}
+          extensions: mbstring, intl, pcntl, sockets
+          ini-values: post_max_size=256M, max_execution_time=180
+          coverage: pcov
+
+      - name: Install dependencies
+        run: |
+          composer install --prefer-dist
+          composer update
+
+      - name: Print max send & receive buffers (for reference)
+        run: |
+          echo "Max recv buffer size: $(cat /proc/sys/net/core/rmem_max)"
+          echo "Max send buffer size: $(cat /proc/sys/net/core/wmem_max)"
+
+      - name: Test
+        env:
+          DEBUG: true
+          GHA: true
+        run: |
+          make test ARGS='-v'
+
+      - name: Set VERSION env
+        run: echo "VERSION=$(cat src/Version.php | grep 'const CURRENT' | cut -d "'" -f 2 | sed "s/'//g")" >> $GITHUB_ENV
+
+          #      - name: SonarQube Scan (Push)
+          #        if: matrix.version == '8.2' && github.event_name == 'push'
+          #        uses: SonarSource/sonarcloud-github-action@v1.9
+          #        env:
+          #          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #        with:
+          #          projectBaseDir: .
+          #          args: >
+          #            -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          #            -Dsonar.projectVersion=${{ env.VERSION }}
+          #
+          #      - name: SonarQube Scan (Pull Request)
+          #        if: matrix.version == '8.2' && github.event_name == 'pull_request'
+          #        uses: SonarSource/sonarcloud-github-action@v1.9
+          #        env:
+          #          SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
+          #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          #        with:
+          #          projectBaseDir: .
+          #          args: >
+          #            -Dsonar.host.url=${{ secrets.SONARQUBE_HOST }}
+          #            -Dsonar.projectVersion=${{ env.VERSION }}
+          #            -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
+          #            -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
+          #            -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
