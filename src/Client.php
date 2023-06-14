@@ -5,7 +5,7 @@ namespace SplitIO\ThinClient;
 use \SplitIO\ThinClient\Utils\ImpressionListener;
 use \SplitIO\ThinClient\Models\Impression;
 use \SplitIO\ThinClient\Link\Consumer\Manager;
-use \SplitIO\ThinClient\Link\Protocol\V1\TreatmentResponse;
+use \SplitIO\ThinClient\Link\Protocol\V1\ImpressionListenerData;
 use \Psr\Log\LoggerInterface;
 
 
@@ -26,7 +26,7 @@ class Client implements ClientInterface
     {
         try {
             $result = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
-            $this->handleListener($key, $bucketingKey, $feature, $attributes, $result);
+            $this->handleListener($key, $bucketingKey, $feature, $attributes, $result->getTreatment(), $result->getListenerData());
             return $result->getTreatment();
         } catch (\Exception $exc) {
             $this->logger->error($exc);
@@ -34,9 +34,26 @@ class Client implements ClientInterface
         }
     }
 
-    private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, TreatmentResponse $result)
+    public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
     {
-        if ($this->impressionListener == null || $result->getListenerData() == null) {
+        try {
+            $results = $this->lm->getTreatments($key, $bucketingKey, $features, $attributes);
+            $toReturn = [];
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData) = $result;
+                $toReturn[$feature] = $treatment;
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return "control";
+        }
+    }
+
+    private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, string $treatment, ?ImpressionListenerData $ilData)
+    {
+        if ($this->impressionListener == null || $ilData == null) {
             return;
         }
 
@@ -45,10 +62,10 @@ class Client implements ClientInterface
                 $key,
                 $bucketingKey,
                 $feature,
-                $result->getTreatment(),
-                $result->getListenerData()->getLabel(),
-                $result->getListenerData()->getChangeNumber(),
-                $result->getListenerData()->getTimestamp()
+                $treatment,
+                $ilData->getLabel(),
+                $ilData->getChangeNumber(),
+                $ilData->getTimestamp()
             ), $attributes);
         } catch (\Exception $exc) {
             $this->logger->error("failed to invoke impressions listener:");

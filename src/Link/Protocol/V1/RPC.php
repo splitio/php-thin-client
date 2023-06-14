@@ -63,6 +63,22 @@ class RPC implements Serializable
         );
     }
 
+    public static function forTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): RPC
+    {
+        return new RPC(
+            Version::V1(),
+            OpCode::Treatments(),
+            array(
+                TreatmentsArgs::KEY()->getValue()           => $key,
+                TreatmentsArgs::BUCKETING_KEY()->getValue() => $bucketingKey,
+                TreatmentsArgs::FEATURES()->getValue()      => $features,
+                TreatmentsArgs::ATTRIBUTES()->getValue()    => ($attributes != null && count($attributes) > 0)
+                    ? $attributes
+                    : null,
+            )
+        );
+    }
+
     function getSerializable() /* : mixed */
     {
         return array(
