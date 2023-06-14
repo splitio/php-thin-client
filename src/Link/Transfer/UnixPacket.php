@@ -81,4 +81,10 @@ class UnixPacket implements RawConnection
         $status = @socket_get_status($this->sock);
         return (!$status['timed_out'] && !$status['eof']);
     }
+
+    public function __destruct()
+    {
+        @socket_close($this->sock);
+    }
+
 }
