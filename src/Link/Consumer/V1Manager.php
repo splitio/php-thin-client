@@ -47,6 +47,23 @@ class V1Manager implements Manager
         );
     }
 
+    public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    {
+        $response = Protocol\V1\TreatmentsResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatments($key, $bucketingKey, $features, $attributes))
+        );
+
+        $results = [];
+        foreach ($features as $idx => $feature) {
+            $result = $response->getEvaluationResult($idx);
+            $results[$feature] = $result == null
+                ? ["control", null, null]
+                : [$result->getTreatment(), $result->getImpressionListenerdata(), $result->getConfig()];
+        }
+
+        return $results;
+    }
+
     private function register(string $id, bool $impressionFeedback)
     {
         // this is performed without retries to avoid an endless loop,
