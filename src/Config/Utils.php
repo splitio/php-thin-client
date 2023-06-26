@@ -7,7 +7,7 @@ use \SplitIO\ThinClient\Utils\ImpressionListener;
 
 class Utils
 {
-    private ?ImpressionListener $listener;
+    private /*?ImpressionListener*/ $listener;
 
     private function __construct(?ImpressionListener $listener)
     {

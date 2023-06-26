@@ -4,10 +4,10 @@ namespace SplitIO\ThinClient\Config;
 
 class Main
 {
-    private Transfer $transfer;
-    private Serialization $serialization;
-    private Logging $logging;
-    private Utils $utils;
+    private /*Transfer*/ $transfer;
+    private /*Serialization*/ $serialization;
+    private /*Logging*/ $logging;
+    private /*Utils*/ $utils;
 
     private function __construct(Transfer $transfer, Serialization $serialization, Logging $logging, Utils $utils)
     {

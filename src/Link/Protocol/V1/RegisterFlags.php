@@ -7,7 +7,7 @@ class RegisterFlags
     
     const FEEDBACK_IMPRESSIONS = 0;
 
-    private int $flags = 0;
+    private /*int*/ $flags = 0;
 
     public function __construct(bool $feedbackImpressions)
     {

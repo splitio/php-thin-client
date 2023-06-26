@@ -2,33 +2,47 @@
 
 namespace SplitIO\ThinClient\Link\Transfer\Framing;
 
+use SplitIO\ThinClient\Link\Transfer\StreamSocketHelpers;
+
 class LengthPrefix implements Framer
 {
-    public function Frame(string $message): string
+
+    private const HEADER_SIZE_BYTES = 4;
+    private const UNPACK_TYPE = 'V';
+
+    public function SendFrame(/*Socket*/ $socket, string $message): int
     {
-        $prefix = pack("V", strlen($message));
-        return $prefix . $message;
+        $toSend = pack(self::UNPACK_TYPE, strlen($message)) . $message;
+
+        $sent = 0;
+        while ($sent < strlen($toSend)) {
+            $sent += StreamSocketHelpers::writeOrThrow($socket, substr($toSend, $sent));
+        }
+
+        return $sent - self::HEADER_SIZE_BYTES;
     }
 
-    public function ReadFrame(\Socket $sock, string &$buffer): int
+    public function ReadFrame(/*\Socket */$sock, string &$buffer): int
     {
-        $sizeBuffer = "    ";
-        $n = socket_recv($sock, $sizeBuffer, 4, 0);
-        if ($n != 4) {
-            throw new \Exception("wrong number of bytes from size");
+        $sizeBuffer = '';
+        $sizeByteCount = StreamSocketHelpers::readOrThrow($sock, $sizeBuffer, self::HEADER_SIZE_BYTES);
+        if ($sizeByteCount != self::HEADER_SIZE_BYTES) {
+            throw new FramingException("invalid header size: $sizeByteCount");
         }
 
         $size = unpack("V", $sizeBuffer);
         if (!isset($size[1])) {
-            throw new \Exception("size parsing failed");
+            throw new FramingException("message size unpacking failed");
         }
+
         $size = $size[1];
-
-        $n = socket_recv($sock, $buffer, $size, 0);
-        if ($size != $n) {
-            throw new \Exception("size mismatch. got: $n -- expected: $size");
+        $read = 0;
+        while ($read < $size) {
+            $buf = '';
+            $read += StreamSocketHelpers::readOrThrow($sock, $buf, $size);
+            $buffer .= $buf;
         }
 
-        return $n;
+        return  - self::HEADER_SIZE_BYTES;
     }
 }

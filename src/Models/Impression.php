@@ -4,13 +4,13 @@ namespace SplitIO\ThinClient\Models;
 
 class Impression
 {
-    private string $key;
-    private ?string $bucketingKey;
-    private string $feature;
-    private string $treatment;
-    private string $label;
-    private int $changeNumber;
-    private int $timestamp;
+    private /*string*/ $key;
+    private /*?string*/ $bucketingKey;
+    private /*string*/ $feature;
+    private /*string*/ $treatment;
+    private /*string*/ $label;
+    private /*int*/ $changeNumber;
+    private /*int*/ $timestamp;
 
     public function __construct(string $key,
         ?string $bucketingKey,

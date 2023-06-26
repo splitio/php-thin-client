@@ -9,8 +9,8 @@ use \Psr\Log\LogLevel;
 class BasicLogger extends AbstractLogger implements LoggerInterface
 {
 
-    private Sink $sink;
-    private int $level;
+    private /*Sink*/ $sink;
+    private /*int*/ $level;
 
     public static function default(string $level = LogLevel::INFO): BasicLogger
     {
@@ -31,7 +31,7 @@ class BasicLogger extends AbstractLogger implements LoggerInterface
      * @param array $context
      * @return void
      */
-    public function log($level, string|\Stringable $message, array $context = []): void
+    public function log($level, /*string|\Stringable*/ $message, array $context = []): void
     {
         if (self::normalizeLogLevel($level) > $this->level) {
             return;
@@ -42,7 +42,7 @@ class BasicLogger extends AbstractLogger implements LoggerInterface
         $this->sink->write("$now [{$level}]\t" . $message);
     }
 
-    static private function interpolate(string|\Stringable $message, array $context = [])
+    static private function interpolate(/*string|\Stringable*/ $message, array $context = [])
     {
         // implementation based on: https://www.php-fig.org/psr/psr-3/
         $replace = [];

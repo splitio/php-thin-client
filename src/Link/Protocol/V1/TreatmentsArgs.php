@@ -14,11 +14,11 @@ enum TreatmentArgs: int
 
 use MyCLabs\Enum\Enum;
 
-class TreatmentArgs extends Enum
+class TreatmentsArgs extends Enum
 {
     private const KEY = 0;
     private const BUCKETING_KEY = 1;
-    private const FEATURE = 2;
+    private const FEATURES = 2;
     private const ATTRIBUTES = 3;
 
 }
