@@ -47,7 +47,7 @@ class Client implements ClientInterface
             return $toReturn;
         } catch (\Exception $exc) {
             $this->logger->error($exc);
-            return "control";
+            return array_reduce($features, function ($r, $k) { $r[$k] = "control"; return $r; }, []);
         }
     }
 
