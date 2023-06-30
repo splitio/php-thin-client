@@ -2,10 +2,12 @@ name: ci
 on:
   pull_request:
     branches:
-      - dev-7.3
+      - main
+      - dev
   push:
     branches:
-      - dev-7.3
+      - main
+      - dev
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
