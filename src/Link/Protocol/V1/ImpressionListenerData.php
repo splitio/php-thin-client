@@ -2,7 +2,8 @@
 
 namespace SplitIO\ThinClient\Link\Protocol\V1;
 
-use  SplitIO\ThinClient\Link\Serialization\Deserializable;
+use SplitIO\ThinClient\Link\Serialization\Deserializable;
+use SplitIO\ThinClient\Foundation\Lang\Enforce;
 
 class ImpressionListenerData implements Deserializable
 {
@@ -32,12 +33,12 @@ class ImpressionListenerData implements Deserializable
         return $this->timestamp;
     }
 
-    public static function fromRaw(/*mixed*/ $raw)/*: mixed*/
+    public static function fromRaw(/*mixed*/$raw)/*: mixed*/
     {
         if (!is_array($raw)) {
             throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
         }
 
-        return new ImpressionListenerData($raw['l'], $raw['c'], $raw['m']);
+        return new ImpressionListenerData(Enforce::isString($raw['l']), Enforce::isInt($raw['c']), enforce::isInt($raw['m']));
     }
 }

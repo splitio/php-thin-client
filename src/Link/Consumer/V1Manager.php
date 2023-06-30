@@ -7,8 +7,6 @@ use \SplitIO\ThinClient\Link\Protocol\V1\RPC;
 use \SplitIO\ThinClient\Link\Transfer;
 use \SplitIO\ThinClient\Link\Serialization;
 
-use \SplitIO\ThinClient\Config\Transfer as TransferConfig;
-use \SplitIO\ThinClient\Config\Serialization as SerializationConfig;
 use \SplitIO\ThinClient\Config\Utils as UtilsConfig;
 
 
@@ -16,35 +14,37 @@ class V1Manager implements Manager
 {
     private /*Transfer\RawConnection*/ $conn;
     private /*Serialization\Serializer*/ $serializer;
-    private /*TransferConfig*/ $transferConfig;
+    private /*ConnectionFactory*/ $connFactory;
     private /*UtilsConfig*/ $utilsConfig;
     private /*string*/ $id;
     private /*LoggerInterface*/ $logger;
 
 
     public function __construct(
-        TransferConfig $transferConfig,
-        SerializationConfig $serializationConfig,
+        Transfer\ConnectionFactory $connFactory,
+        Serialization\SerializerFactory $serializerFactory,
         UtilsConfig $utilsConfig,
         \Psr\Log\LoggerInterface $logger
     ) {
         // save these 2 for future reconnects
-        $this->transferConfig = $transferConfig;
+        $this->connFactory = $connFactory;
         $this->utilsConfig = $utilsConfig;
         $this->logger = $logger;
 
         $this->id = 'someId'; /*TODO*/
 
-        $this->serializer = Serialization\Initializer::setup($serializationConfig);
-        $this->conn = Transfer\Initializer::setup($this->transferConfig);
+        $this->serializer = $serializerFactory->create();
+        $this->conn = $this->connFactory->create();
         $this->register($this->id, $utilsConfig->impressionListener() != null);
     }
 
-    public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): Protocol\V1\TreatmentResponse
+    public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): array
     {
-        return Protocol\V1\TreatmentResponse::fromRaw(
+        $result = Protocol\V1\TreatmentResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTreatment($key, $bucketingKey, $feature, $attributes))
-        );
+        )->getEvaluationResult();
+
+        return [$result->getTreatment(), $result->getImpressionListenerData(), $result->getConfig()];
     }
 
     public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
@@ -82,7 +82,7 @@ class V1Manager implements Manager
         }
 
         // TODO(mredolatti): shutdown current conn?
-        $this->conn = Transfer\Initializer::setup($this->transferConfig);
+        $this->conn = $this->connFactory->create();
         $this->register($this->id, $this->utilsConfig->impressionListener() != null);
         return $this->performRPC($rpc);
     }
