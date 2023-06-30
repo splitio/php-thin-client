@@ -1,5 +1,21 @@
 {
     "name": "splitio/thin-sdk",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "Split",
+            "homepage": "https://www.split.io/",
+            "email": "php@split.io"
+        },
+        {
+            "name": "Martin Redolatti",
+            "email": "martin.redolatti@split.io"
+        },
+        {
+            "name": "Matias Melograno",
+            "email": "matias.melograno@split.io"
+        }
+    ],
     "minimum-stability": "stable",
     "description": "split.io php client, to be used with splitd",
     "type": "library",
@@ -9,12 +25,6 @@
             "SplitIO\\Test\\": "tests/"
         }
     },
-    "authors": [
-        {
-            "name": "Martin Redolatti",
-            "email": "martinredolatti@gmail.com"
-        }
-    ],
     "require": {
         "rybakit/msgpack": "^0.9.1",
         "psr/log": "1 - 3",
