@@ -1,5 +1,5 @@
 {
-    "name": "splitio/thin-sdk",
+    "name": "splitsoftware/thin-sdk",
     "license": "Apache-2.0",
     "authors": [
         {
@@ -10,10 +10,6 @@
         {
             "name": "Martin Redolatti",
             "email": "martin.redolatti@split.io"
-        },
-        {
-            "name": "Matias Melograno",
-            "email": "matias.melograno@split.io"
         }
     ],
     "minimum-stability": "stable",
