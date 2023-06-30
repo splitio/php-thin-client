@@ -1,5 +1,6 @@
 {
     "name": "splitio/thin-sdk",
+    "minimum-stability": "stable",
     "description": "split.io php client, to be used with splitd",
     "type": "library",
     "autoload": {
