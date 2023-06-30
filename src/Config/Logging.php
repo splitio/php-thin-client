@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Config;
+namespace SplitIO\ThinSdk\Config;
 
 use \Psr\Log\LoggerInterface;
 use \Psr\Log\LogLevel;

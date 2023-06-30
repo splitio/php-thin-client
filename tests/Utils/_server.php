@@ -2,8 +2,8 @@
 
 require_once dirname(__FILE__) . "/../../vendor/autoload.php";
 
-use \SplitIO\ThinClient\Link\Transfer\Framing\LengthPrefix;
-use \SplitIO\ThinClient\Link\Transfer\Framing\Framer;
+use \SplitIO\ThinSdk\Link\Transfer\Framing\LengthPrefix;
+use \SplitIO\ThinSdk\Link\Transfer\Framing\Framer;
 use \SplitIO\Test\Utils\SocketServerRemoteControl;
 
 function debug($str)

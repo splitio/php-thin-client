@@ -2,15 +2,15 @@
 
 require_once '../vendor/autoload.php';
 
-use \SplitIO\ThinClient\Factory;
-use \SplitIO\ThinClient\Utils\ImpressionListener;
-use \SplitIO\ThinClient\Models\Impression;
+use \SplitIO\ThinSdk\Factory;
+use \SplitIO\ThinSdk\Utils\ImpressionListener;
+use \SplitIO\ThinSdk\Models\Impression;
 
 class CustomListener implements ImpressionListener
 {
     public function accept(Impression $i, ?array $a)
     {
-        echo "recibi impression para key=".$i->getKey()
+        echo "got an impression for: key=".$i->getKey()
             ." feat=".$i->getFeature()
             ." treatment=".$i->getTreatment()
             ." label=".$i->getLabel()
@@ -33,8 +33,5 @@ $factory = Factory::withConfig([
 ]);
 
 $client = $factory->client();
-
-while (true) {
-    echo $client->getTreatment("test_82", null, "PHP_8_SPLITD_changeTrafficAllocationAndTargetingRule", ['a' => 1]) . PHP_EOL;
-    sleep(1);
-}
+echo $client->getTreatment("key", null, "feature1", ['age' => 22]);
+print_r($client->getTreatments("key", null, ["feature1", "feature2"], ['age' => 22]));

@@ -2,8 +2,8 @@
 
 namespace SplitIO\Test\Link\Transfer;
 
-use SplitIO\ThinClient\Link\Transfer\UnixStream;
-use SplitIO\ThinClient\Link\Transfer\ConnectionException;
+use SplitIO\ThinSdk\Link\Transfer\UnixStream;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionException;
 use SplitIO\Test\Utils\SocketServerRemoteControl;
 
 use PHPUnit\Framework\TestCase;

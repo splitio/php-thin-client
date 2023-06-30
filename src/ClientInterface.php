@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient;
+namespace SplitIO\ThinSdk;
 
 interface ClientInterface
 {

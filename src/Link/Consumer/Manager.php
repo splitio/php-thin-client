@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Consumer;
+namespace SplitIO\ThinSdk\Link\Consumer;
 
 interface Manager
 {

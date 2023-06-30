@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol;
+namespace SplitIO\ThinSdk\Link\Protocol;
 
 use MyCLabs\Enum\Enum;
 /*

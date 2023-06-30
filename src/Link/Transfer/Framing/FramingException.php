@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Transfer\Framing;
+namespace SplitIO\ThinSdk\Link\Transfer\Framing;
 
-use SplitIO\ThinClient\Link\Transfer\ConnectionException;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionException;
 
 class FramingException extends ConnectionException
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Config;
+namespace SplitIO\ThinSdk\Config;
 
 class Serialization
 {

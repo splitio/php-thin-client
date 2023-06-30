@@ -1,9 +1,9 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol\V1;
+namespace SplitIO\ThinSdk\Link\Protocol\V1;
 
-use  SplitIO\ThinClient\Link\Protocol\Version;
-use  SplitIO\ThinClient\Link\Serialization\Serializable;
+use  SplitIO\ThinSdk\Link\Protocol\Version;
+use  SplitIO\ThinSdk\Link\Serialization\Serializable;
 
 class RPC implements Serializable
 {
@@ -35,7 +35,7 @@ class RPC implements Serializable
 
     public static function forRegister(string $id, RegisterFlags $registerFlags): RPC
     {
-        $v = \SplitIO\ThinClient\Version::CURRENT;
+        $v = \SplitIO\ThinSdk\Version::CURRENT;
         return new RPC(
             Version::V1(),
             OpCode::Register(),

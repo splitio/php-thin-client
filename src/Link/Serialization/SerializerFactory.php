@@ -1,13 +1,13 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Serialization;
+namespace SplitIO\ThinSdk\Link\Serialization;
 
 class SerializerFactory
 {
 
     private $mechanism;
 
-    public function __construct(\SplitIO\ThinClient\Config\Serialization $options)
+    public function __construct(\SplitIO\ThinSdk\Config\Serialization $options)
     {
         $this->mechanism = $options->mechanism();
     }

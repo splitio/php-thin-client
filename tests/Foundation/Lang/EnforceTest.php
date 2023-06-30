@@ -2,7 +2,7 @@
 
 namespace SplitIO\Test\Link\Consumer;
 
-use SplitIO\ThinClient\Foundation\Lang\Enforce;
+use SplitIO\ThinSdk\Foundation\Lang\Enforce;
 
 use PHPUnit\Framework\TestCase;
 

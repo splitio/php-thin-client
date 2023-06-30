@@ -2,11 +2,11 @@
 
 namespace SplitIO\Test\Link\Consumer;
 
-use SplitIO\ThinClient\Client;
-use SplitIO\ThinClient\Utils\ImpressionListener;
-use SplitIO\ThinClient\Models\Impression;
-use SplitIO\ThinClient\Link\Consumer\Manager;
-use SplitIO\ThinClient\Link\Protocol\V1\ImpressionListenerData;
+use SplitIO\ThinSdk\Client;
+use SplitIO\ThinSdk\Utils\ImpressionListener;
+use SplitIO\ThinSdk\Models\Impression;
+use SplitIO\ThinSdk\Link\Consumer\Manager;
+use SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
 
 use PHPUnit\Framework\TestCase;
 

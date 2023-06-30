@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol\V1;
+namespace SplitIO\ThinSdk\Link\Protocol\V1;
 
-use SplitIO\ThinClient\Foundation\Lang\Enforce;
+use SplitIO\ThinSdk\Foundation\Lang\Enforce;
 
 class EvaluationResult
 {

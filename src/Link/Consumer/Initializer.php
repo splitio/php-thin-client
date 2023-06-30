@@ -1,11 +1,11 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Consumer;
+namespace SplitIO\ThinSdk\Link\Consumer;
 
-use SplitIO\ThinClient\Link\Protocol\Version;
-use SplitIO\ThinClient\Link\Transfer\ConnectionFactory;
-use SplitIO\ThinClient\Link\Serialization\SerializerFactory;
-use SplitIO\ThinClient\Config;
+use SplitIO\ThinSdk\Link\Protocol\Version;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionFactory;
+use SplitIO\ThinSdk\Link\Serialization\SerializerFactory;
+use SplitIO\ThinSdk\Config;
 
 use Psr\Log\LoggerInterface;
 

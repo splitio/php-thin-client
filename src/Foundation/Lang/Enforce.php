@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Foundation\Lang;
+namespace SplitIO\ThinSdk\Foundation\Lang;
 
 class Enforce
 {

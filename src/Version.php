@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient;
+namespace SplitIO\ThinSdk;
 
 class Version
 {
-    const CURRENT = '1.0.0-rc2';
+    const CURRENT = '1.0.0';
 }

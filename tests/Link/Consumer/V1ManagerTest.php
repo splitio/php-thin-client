@@ -2,17 +2,17 @@
 
 namespace SplitIO\Test\Link\Consumer;
 
-use SplitIO\ThinClient\Config\Utils;
-use SplitIO\ThinClient\Utils\ImpressionListener;
-use SplitIO\ThinClient\Link\Protocol\V1\RPC;
-use SplitIO\ThinClient\Link\Protocol\V1\RegisterFlags;
-use SplitIO\ThinClient\Link\Protocol\V1\ImpressionListenerData;
-use SplitIO\ThinClient\Link\Consumer\V1Manager;
-use SplitIO\ThinClient\Link\Transfer\ConnectionFactory;
-use SplitIO\ThinClient\Link\Transfer\RawConnection;
-use SplitIO\ThinClient\Link\Transfer\ConnectionException;
-use SplitIO\ThinClient\Link\Serialization\SerializerFactory;
-use SplitIO\ThinClient\Link\Serialization\Serializer;
+use SplitIO\ThinSdk\Config\Utils;
+use SplitIO\ThinSdk\Utils\ImpressionListener;
+use SplitIO\ThinSdk\Link\Protocol\V1\RPC;
+use SplitIO\ThinSdk\Link\Protocol\V1\RegisterFlags;
+use SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
+use SplitIO\ThinSdk\Link\Consumer\V1Manager;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionFactory;
+use SplitIO\ThinSdk\Link\Transfer\RawConnection;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionException;
+use SplitIO\ThinSdk\Link\Serialization\SerializerFactory;
+use SplitIO\ThinSdk\Link\Serialization\Serializer;
 
 use PHPUnit\Framework\TestCase;
 

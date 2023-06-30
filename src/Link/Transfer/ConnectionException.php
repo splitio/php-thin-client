@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Transfer;
+namespace SplitIO\ThinSdk\Link\Transfer;
 
 class ConnectionException extends \Exception
 {

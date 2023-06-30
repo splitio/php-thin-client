@@ -1,13 +1,13 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Consumer;
+namespace SplitIO\ThinSdk\Link\Consumer;
 
-use \SplitIO\ThinClient\Link\Protocol;
-use \SplitIO\ThinClient\Link\Protocol\V1\RPC;
-use \SplitIO\ThinClient\Link\Transfer;
-use \SplitIO\ThinClient\Link\Serialization;
+use \SplitIO\ThinSdk\Link\Protocol;
+use \SplitIO\ThinSdk\Link\Protocol\V1\RPC;
+use \SplitIO\ThinSdk\Link\Transfer;
+use \SplitIO\ThinSdk\Link\Serialization;
 
-use \SplitIO\ThinClient\Config\Utils as UtilsConfig;
+use \SplitIO\ThinSdk\Config\Utils as UtilsConfig;
 
 
 class V1Manager implements Manager

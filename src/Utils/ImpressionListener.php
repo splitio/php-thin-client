@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Utils;
+namespace SplitIO\ThinSdk\Utils;
 
-use SplitIO\ThinClient\Models\Impression;
+use SplitIO\ThinSdk\Models\Impression;
 
 interface ImpressionListener
 {

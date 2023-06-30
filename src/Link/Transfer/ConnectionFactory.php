@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Transfer;
+namespace SplitIO\ThinSdk\Link\Transfer;
 
 class ConnectionFactory
 {
@@ -9,7 +9,7 @@ class ConnectionFactory
     private /*string*/ $sockAddr;
     private /*string*/ $sockType;
 
-    public function __construct(\SplitIO\ThinClient\Config\Transfer $options)
+    public function __construct(\SplitIO\ThinSdk\Config\Transfer $options)
     {
         $this->sockType = $options->connType();
         $this->sockAddr = $options->sockFN();

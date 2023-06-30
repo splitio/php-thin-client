@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Foundation\Logging;
+namespace SplitIO\ThinSdk\Foundation\Logging;
 
 use \Psr\Log\LoggerInterface;
 use \Psr\Log\AbstractLogger;
