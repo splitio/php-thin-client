@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Transfer\Framing;
+namespace SplitIO\ThinSdk\Link\Transfer\Framing;
 
-use SplitIO\ThinClient\Link\Transfer\StreamSocketHelpers;
+use SplitIO\ThinSdk\Link\Transfer\StreamSocketHelpers;
 
 class LengthPrefix implements Framer
 {

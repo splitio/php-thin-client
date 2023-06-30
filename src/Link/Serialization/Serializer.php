@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Serialization;
+namespace SplitIO\ThinSdk\Link\Serialization;
 
-use \SplitIO\ThinClient\Link\Serialization\Serializable;
+use \SplitIO\ThinSdk\Link\Serialization\Serializable;
 
 interface Serializer
 {

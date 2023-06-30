@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Transfer\Framing;
+namespace SplitIO\ThinSdk\Link\Transfer\Framing;
 
 interface Framer
 {

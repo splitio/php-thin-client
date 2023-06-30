@@ -1,9 +1,9 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol\V1;
+namespace SplitIO\ThinSdk\Link\Protocol\V1;
 
-use  SplitIO\ThinClient\Link\Protocol\V1\Result;
-use  SplitIO\ThinClient\Link\Serialization\Deserializable;
+use  SplitIO\ThinSdk\Link\Protocol\V1\Result;
+use  SplitIO\ThinSdk\Link\Serialization\Deserializable;
 
 abstract class Response implements Deserializable
 {

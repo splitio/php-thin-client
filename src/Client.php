@@ -1,11 +1,11 @@
 <?php
 
-namespace SplitIO\ThinClient;
+namespace SplitIO\ThinSdk;
 
-use \SplitIO\ThinClient\Utils\ImpressionListener;
-use \SplitIO\ThinClient\Models\Impression;
-use \SplitIO\ThinClient\Link\Consumer\Manager;
-use \SplitIO\ThinClient\Link\Protocol\V1\ImpressionListenerData;
+use \SplitIO\ThinSdk\Utils\ImpressionListener;
+use \SplitIO\ThinSdk\Models\Impression;
+use \SplitIO\ThinSdk\Link\Consumer\Manager;
+use \SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
 use \Psr\Log\LoggerInterface;
 
 
@@ -25,9 +25,9 @@ class Client implements ClientInterface
     public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): string
     {
         try {
-            $result = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
-            $this->handleListener($key, $bucketingKey, $feature, $attributes, $result->getTreatment(), $result->getListenerData());
-            return $result->getTreatment();
+            list($treatment, $ilData) = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
+            $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            return $treatment;
         } catch (\Exception $exc) {
             $this->logger->error($exc);
             return "control";

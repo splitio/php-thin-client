@@ -1,9 +1,11 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Consumer;
+namespace SplitIO\ThinSdk\Link\Consumer;
 
-use SplitIO\ThinClient\Link\Protocol\Version;
-use SplitIO\ThinClient\Config;
+use SplitIO\ThinSdk\Link\Protocol\Version;
+use SplitIO\ThinSdk\Link\Transfer\ConnectionFactory;
+use SplitIO\ThinSdk\Link\Serialization\SerializerFactory;
+use SplitIO\ThinSdk\Config;
 
 use Psr\Log\LoggerInterface;
 
@@ -16,9 +18,13 @@ class Initializer
         Config\Utils $utilityConfig,
         LoggerInterface $logger): Manager
     {
+
+        $connFactoy = new ConnectionFactory($transferConfig);
+        $serializerFactory = new SerializerFactory($serializationConfig);
+
         switch ($version) {
         case Version::V1():
-            return new V1Manager($transferConfig, $serializationConfig, $utilityConfig, $logger);
+            return new V1Manager($connFactoy, $serializerFactory, $utilityConfig, $logger);
         }
     }
 }

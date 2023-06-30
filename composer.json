@@ -1,10 +1,11 @@
 {
-    "name": "splitio/thin-client",
-    "description": "split.io php lw client",
+    "name": "splitio/thin-sdk",
+    "minimum-stability": "stable",
+    "description": "split.io php client, to be used with splitd",
     "type": "library",
     "autoload": {
         "psr-4": {
-            "SplitIO\\ThinClient\\": "src/",
+            "SplitIO\\ThinSdk\\": "src/",
             "SplitIO\\Test\\": "tests/"
         }
     },

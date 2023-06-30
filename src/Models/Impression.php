@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Models;
+namespace SplitIO\ThinSdk\Models;
 
 class Impression
 {

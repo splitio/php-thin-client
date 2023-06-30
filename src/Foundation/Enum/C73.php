@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Foundation\Enum;
+namespace SplitIO\ThinSdk\Foundation\Enum;
 
 class C73
 {

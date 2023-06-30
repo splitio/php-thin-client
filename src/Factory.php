@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient;
+namespace SplitIO\ThinSdk;
 
-use SplitIO\ThinClient\Foundation\Logging\Helpers;
+use SplitIO\ThinSdk\Foundation\Logging\Helpers;
 
 class Factory implements FactoryInterface
 {

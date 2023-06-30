@@ -1,30 +1,24 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol\V1;
+namespace SplitIO\ThinSdk\Link\Protocol\V1;
 
-use SplitIO\ThinClient\Link\Protocol\V1\Result;
+use SplitIO\ThinSdk\Link\Protocol\V1\Result;
+use SplitIO\ThinSdk\Foundation\Lang\Enforce;
 
 class TreatmentResponse extends Response
 {
 
-    private /*string*/ $treatment;
-    private /*?ImpressionListenerData*/ $listenerData;
+    private $evaluationResult;
 
-    public function __construct(Result $result, string $treatment, ?ImpressionListenerData $listenerData)
+    public function __construct(Result $status, EvaluationResult $result)
     {
-        parent::__construct($result);
-        $this->treatment = $treatment;
-        $this->listenerData = $listenerData;
+        parent::__construct($status);
+        $this->evaluationResult = $result;
     }
 
-    public function getTreatment(): string
+    public function getEvaluationResult(): EvaluationResult
     {
-        return $this->treatment;
-    }
-
-    public function getListenerData(): ?ImpressionListenerData
-    {
-        return $this->listenerData;
+        return $this->evaluationResult;
     }
 
     static function fromRaw(/*mixed*/ $raw)/*: mixed*/
@@ -34,9 +28,7 @@ class TreatmentResponse extends Response
         }
 
         return new TreatmentResponse(
-            Result::from($raw['s']),
-            $raw['p']['t'],
-            isset($raw['p']['l']) ? ImpressionListenerData::fromRaw($raw['p']['l']) : null
-        );
+            Result::from(Enforce::isInt($raw['s'])),
+            EvaluationResult::fromRaw(Enforce::isArray($raw['p'])));
     }
 }

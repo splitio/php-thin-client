@@ -1,7 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Link\Protocol\V1;
+namespace SplitIO\ThinSdk\Link\Protocol\V1;
 
+use SplitIO\ThinSdk\Foundation\Lang\Enforce;
 
 class EvaluationResult
 {
@@ -33,9 +34,9 @@ class EvaluationResult
     }
 
     public static function fromRaw(array $raw): EvaluationResult
-    {
-        return new EvaluationResult($raw['t'],
-            isset($raw['l']) ? ImpressionListenerData::fromRaw($raw['l']) : null,
-            $raw['c'] ?? null);
+    { 
+        return new EvaluationResult(Enforce::isString($raw['t']),
+            isset($raw['l']) ? ImpressionListenerData::fromRaw(Enforce::isArray($raw['l'])) : null,
+            isset($raw['c']) ? Enforce::isString($raw['c']) : null);
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace SplitIO\ThinClient\Config;
+namespace SplitIO\ThinSdk\Config;
 
-use \SplitIO\ThinClient\Utils\ImpressionListener;
+use \SplitIO\ThinSdk\Utils\ImpressionListener;
 
 
 class Utils

@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinClient\Foundation\Logging;
+namespace SplitIO\ThinSdk\Foundation\Logging;
 
 class StdoutSink implements Sink
 {
