@@ -75,9 +75,14 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->at(0))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]);
-        $ilMock->expects($this->at(1))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]);
-        $ilMock->expects($this->at(2))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]);
+        $ilMock->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+            );
+                
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -138,11 +143,14 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->at(0))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123])
-            ->will($this->throwException(new \Exception("qqq")));
-        $ilMock->expects($this->at(1))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123])
-            ->will($this->throwException(new \Exception("qqq")));
-        $ilMock->expects($this->at(2))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123])
+        $ilMock
+            ->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]],
+            )
             ->will($this->throwException(new \Exception("qqq")));
 
         $client = new Client($manager, $this->logger, $ilMock);

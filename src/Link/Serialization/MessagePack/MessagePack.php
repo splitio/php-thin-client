@@ -1,7 +1,9 @@
 <?php
 
-namespace SplitIO\ThinSdk\Link\Serialization;
+namespace SplitIO\ThinSdk\Link\Serialization\MessagePack;
 
+use SplitIO\ThinSdk\Link\Serialization\Serializer;
+use SplitIO\ThinSdk\Link\Serialization\Serializable;
 
 use MessagePack\Packer;
 use MessagePack\BufferUnpacker;
@@ -14,7 +16,7 @@ class MessagePack implements Serializer
 
     public function __construct()
     {
-        $this->packer = (new Packer())->extendWith(new TimestampExtension());
+        $this->packer = (new Packer())->extendWith(new TimestampExtension(), new DateTimeExtension());
         $this->unpacker = (new BufferUnpacker())->extendWith(new TimestampExtension());
     }
 

@@ -2,6 +2,8 @@
 
 namespace SplitIO\ThinSdk\Link\Serialization;
 
+use SplitIO\ThinSdk\Link\Serialization\MessagePack\MessagePack;
+
 class SerializerFactory
 {
 

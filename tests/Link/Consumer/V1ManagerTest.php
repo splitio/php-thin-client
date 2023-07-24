@@ -29,30 +29,34 @@ class V1ManagerTest extends TestCase
     public function testHappyExchangeNoImpListener(): void
     {
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock->expects($this->at(2))->method('sendMessage')->with('serializedTreatment');
-        $connMock->expects($this->at(3))->method('readMessage')->willReturn('serializedTreatmentResp');
-        $connMock->expects($this->at(4))->method('sendMessage')->with('serializedTreatments');
-        $connMock->expects($this->at(5))->method('readMessage')->willReturn('serializedTreatmentsResp');
+        $connMock->expects($this->exactly(3))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment'], ['serializedTreatments']);
+        $connMock->expects($this->exactly(3))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedTreatmentResp', 'serializedTreatmentsResp');
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->at(0))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(1))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(2))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
-        $serializerMock->expects($this->at(3))->method('deserialize')->with('serializedTreatmentResp')
-            ->willReturn(['s' => 0x01, 'p' => ['t' => 'on']]);
-        $serializerMock->expects($this->at(4))->method('serialize')->with(RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1]))
-            ->willReturn('serializedTreatments');
-        $serializerMock->expects($this->at(5))->method('deserialize')->with('serializedTreatmentsResp')
-            ->willReturn(['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]]);
+        $serializerMock->expects($this->exactly(3))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+                [RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTreatment', 'serializedTreatments');
 
+        $serializerMock->expects($this->exactly(3))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedTreatmentResp'], ['serializedTreatmentsResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['t' => 'on']],
+                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]]
+            );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
@@ -71,34 +75,36 @@ class V1ManagerTest extends TestCase
     public function testHappyExchangeWithImpListener(): void
     {
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock->expects($this->at(2))->method('sendMessage')->with('serializedTreatment');
-        $connMock->expects($this->at(3))->method('readMessage')->willReturn('serializedTreatmentResp');
-        $connMock->expects($this->at(4))->method('sendMessage')->with('serializedTreatments');
-        $connMock->expects($this->at(5))->method('readMessage')->willReturn('serializedTreatmentsResp');
-
+        $connMock->expects($this->exactly(3))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment'], ['serializedTreatments']);
+        $connMock->expects($this->exactly(3))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedTreatmentResp', 'serializedTreatmentsResp');
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->at(0))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(true)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(1))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(2))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
-        $serializerMock->expects($this->at(3))->method('deserialize')->with('serializedTreatmentResp')
-            ->willReturn(['s' => 0x01, 'p' => ['t' => 'on', 'l' => ['l' => 'lab1', 'c' => 123, 'm' => 1234]]]);
-        $serializerMock->expects($this->at(4))->method('serialize')->with(RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1]))
-            ->willReturn('serializedTreatments');
-        $serializerMock->expects($this->at(5))->method('deserialize')->with('serializedTreatmentsResp')
-            ->willReturn(['s' => 0x01, 'p' => ['r' => [
-                ['t' => 'on', 'l' => ['l' => 'lab1', 'c' => 123, 'm' => 1234]],
-                ['t' => 'on', 'l' => ['l' => 'lab2', 'c' => 124, 'm' => 1235]],
-                ['t' => 'off', 'l' => ['l' => 'lab3', 'c' => 125, 'm' => 1236]],
-            ]]]);
-
+        $serializerMock->expects($this->exactly(3))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(true))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+                [RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTreatment', 'serializedTreatments');
+        $serializerMock->expects($this->exactly(3))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedTreatmentResp'], ['serializedTreatmentsResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['t' => 'on', 'l' => ['l' => 'lab1', 'c' => 123, 'm' => 1234]]],
+                ['s' => 0x01, 'p' => ['r' => [
+                    ['t' => 'on', 'l' => ['l' => 'lab1', 'c' => 123, 'm' => 1234]],
+                    ['t' => 'on', 'l' => ['l' => 'lab2', 'c' => 124, 'm' => 1235]],
+                    ['t' => 'off', 'l' => ['l' => 'lab3', 'c' => 125, 'm' => 1236]],
+                ]]]
+            );
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
 
@@ -123,13 +129,18 @@ class V1ManagerTest extends TestCase
         $this->expectException(ConnectionException::class);
 
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->at(0))->method('sendMessage')->with('serializedRegister')->will($this->throwException(new ConnectionException("some")));
+        $connMock->expects($this->once())
+            ->method('sendMessage')
+            ->with('serializedRegister')
+            ->will($this->throwException(new ConnectionException("some")));
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->at(0))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
+        $serializerMock->expects($this->once())
+            ->method('serialize')
+            ->with(RPC::forRegister('someId', new RegisterFlags(false)))
             ->willReturn('serializedRegister');
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
@@ -142,36 +153,46 @@ class V1ManagerTest extends TestCase
     public function testPostRegisterRPCsAreRetried(): void
     {
         $connMock1 = $this->createMock(RawConnection::class);
-        $connMock1->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock1->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock1->expects($this->at(2))->method('sendMessage')->with('serializedTreatment')->will($this->throwException(new ConnectionException("a")));
+        $connMock1->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment'])
+            ->will($this->onConsecutiveCalls(
+                'serializedRegisterResp',
+                $this->throwException(new ConnectionException("a"))
+            ));
+        $connMock1->expects($this->once())->method('readMessage')->willReturn('serializedRegisterResp');
 
         $connMock2 = $this->createMock(RawConnection::class);
-        $connMock2->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock2->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock2->expects($this->at(2))->method('sendMessage')->with('serializedTreatment');
-        $connMock2->expects($this->at(3))->method('readMessage')->willReturn('serializedTreatmentResp');
+        $connMock2->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment']);
+        $connMock2->expects($this->exactly(2))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedTreatmentResp');
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
-        $connFactoryMock->expects($this->at(0))->method('create')->willReturn($connMock1);
-        $connFactoryMock->expects($this->at(1))->method('create')->willReturn($connMock2);
+        $connFactoryMock->expects($this->exactly(2))
+            ->method('create')->willReturnOnConsecutiveCalls($connMock1, $connMock2);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->at(0))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(1))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(2))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
-        $serializerMock->expects($this->at(3))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(4))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(5))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
-        $serializerMock->expects($this->at(6))->method('deserialize')->with('serializedTreatmentResp')
-            ->willReturn(['s' => 0x01, 'p' => ['t' => 'on']]);
+        $serializerMock->expects($this->exactly(4))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTreatment', 'serializedRegister', 'serializedTreatment');
 
+        $serializerMock->expects($this->exactly(3))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedRegisterResp'], ['serializedTreatmentResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['t' => 'on']],
+            );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
@@ -188,32 +209,46 @@ class V1ManagerTest extends TestCase
         $this->expectException(ConnectionException::class);
 
         $connMock1 = $this->createMock(RawConnection::class);
-        $connMock1->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock1->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock1->expects($this->at(2))->method('sendMessage')->with('serializedTreatment')->will($this->throwException(new ConnectionException("a")));
+        $connMock1->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment'])
+            ->will($this->onConsecutiveCalls(
+                'serializedRegisterResp',
+                $this->throwException(new ConnectionException("a"))
+            ));
+        $connMock1->expects($this->once())->method('readMessage')->willReturn('serializedRegisterResp');
 
         $connMock2 = $this->createMock(RawConnection::class);
-        $connMock2->expects($this->at(0))->method('sendMessage')->with('serializedRegister');
-        $connMock2->expects($this->at(1))->method('readMessage')->willReturn('serializedRegisterResp');
-        $connMock2->expects($this->at(2))->method('sendMessage')->with('serializedTreatment')->will($this->throwException(new ConnectionException("a")));
+        $connMock2->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTreatment'])
+            ->will($this->onConsecutiveCalls(
+                'serializedRegisterResp',
+                $this->throwException(new ConnectionException("a"))
+            ));
+        $connMock2->expects($this->once())->method('readMessage')->willReturn('serializedRegisterResp');
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
-        $connFactoryMock->expects($this->at(0))->method('create')->willReturn($connMock1);
-        $connFactoryMock->expects($this->at(1))->method('create')->willReturn($connMock2);
+        $connFactoryMock->expects($this->exactly(2))->method('create')->willReturnOnConsecutiveCalls($connMock1, $connMock2);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->at(0))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(1))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(2))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
-        $serializerMock->expects($this->at(3))->method('serialize')->with(RPC::forRegister('someId', new RegisterFlags(false)))
-            ->willReturn('serializedRegister');
-        $serializerMock->expects($this->at(4))->method('deserialize')->with('serializedRegisterResp')
-            ->willReturn(['s' => 0x01]);
-        $serializerMock->expects($this->at(5))->method('serialize')->with(RPC::forTreatment("k", "b", "f", ["a" => 1]))
-            ->willReturn('serializedTreatment');
+        $serializerMock->expects($this->exactly(4))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTreatment("k", "b", "f", ["a" => 1])],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTreatment', 'serializedRegister', 'serializedTreatment');
+
+        $serializerMock->expects($this->exactly(2))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedRegisterResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01],
+            );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
@@ -221,5 +256,4 @@ class V1ManagerTest extends TestCase
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $v1Manager->getTreatment("k", "b", "f", ["a" => 1]);
     }
-
 }
