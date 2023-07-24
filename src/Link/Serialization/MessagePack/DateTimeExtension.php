@@ -9,12 +9,10 @@ use MessagePack\Type\Timestamp;
 class DateTimeExtension implements CanPack
 {
 
-    public function pack(Packer $packer, $value) : ?string
+    public function pack(Packer $packer, $value): ?string
     {
-        if (!$value instanceof \DateTimeInterface) {
-            return null;
-        }
-
-        return $packer->pack(Timestamp::fromDateTime($value));
+        return ($value instanceof \DateTimeInterface)
+            ? $packer->pack(Timestamp::fromDateTime($value))
+            : null;
     }
 }
