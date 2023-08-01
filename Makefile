@@ -18,8 +18,7 @@ seqpacket-pre-test:
 
 ## Run all tests (args optional)
 test:
-	$(PHPUNIT) -c phpunit.xml --testsuite all $(ARGS)
-
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-clover coverage.xml
 ## Run phpunit with specified args
 test-args:
 	$(PHPUNIT) $(ARGS)
