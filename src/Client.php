@@ -51,6 +51,16 @@ class Client implements ClientInterface
         }
     }
 
+    public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
+    {
+        try {
+            return $this->lm->track($key, $trafficType, $eventType, $value, $properties);
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return false;
+        }
+    }
+
     private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, string $treatment, ?ImpressionListenerData $ilData)
     {
         if ($this->impressionListener == null || $ilData == null) {

@@ -28,6 +28,11 @@ class Enforce
         return $in;
     }
 
+    static function isBool($in, ?string $msg = null): bool
+    {
+        if (!is_bool($in)) {
+            throw new \Exception($msg ?? ("expected a bool, got a " . gettype($in)));
+        }
+        return $in;
+    }
 }
-
-
