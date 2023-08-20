@@ -24,7 +24,7 @@ class InputValidator
             return null;
         }
 
-        if (!array_is_list($properties)) {
+        if (array_is_list($properties)) {
             throw new ValidationException('track: properties must be of type associative array.');
         }
 

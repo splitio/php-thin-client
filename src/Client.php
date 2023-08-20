@@ -3,6 +3,8 @@
 namespace SplitIO\ThinSdk;
 
 use \SplitIO\ThinSdk\Utils\ImpressionListener;
+use \SplitIO\ThinSdk\Utils\InputValidator\InputValidator;
+use \SplitIO\ThinSdk\Utils\InputValidator\ValidationException;
 use \SplitIO\ThinSdk\Models\Impression;
 use \SplitIO\ThinSdk\Link\Consumer\Manager;
 use \SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
@@ -14,12 +16,14 @@ class Client implements ClientInterface
     private /*Link\Consumer\Manager*/ $lm;
     private /*LoggerInterface*/ $logger;
     private /*?ImpressionListener*/ $impressionListener;
+    private /*InputValidator*/ $inputValidator;
 
     public function __construct(Manager $manager, LoggerInterface $logger, ?ImpressionListener $impressionListener)
     {
         $this->logger = $logger;
         $this->lm = $manager;
         $this->impressionListener = $impressionListener;
+        $this->inputValidator = new InputValidator($logger);
     }
 
     public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): string
@@ -54,11 +58,16 @@ class Client implements ClientInterface
     public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
     {
         try {
+            $properties = $this->inputValidator->validProperties($properties);
+            var_dump($properties);
             return $this->lm->track($key, $trafficType, $eventType, $value, $properties);
+        } catch (ValidationException $exc) {
+            $this->logger->error("error validating event properties: " . $exc->getMessage());
         } catch (\Exception $exc) {
             $this->logger->error($exc);
-            return false;
         }
+
+        return false;
     }
 
     private function handleListener(string $key, ?string $bucketingKey, string $feature, ?array $attributes, string $treatment, ?ImpressionListenerData $ilData)

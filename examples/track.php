@@ -15,4 +15,8 @@ $factory = Factory::withConfig([
 ]);
 
 $client = $factory->client();
-echo $client->track("key", "user", "checkin", 0.123, ['age' => 22]);
+if ($client->track("key", "user", "checkin", 0.123, ['age' => 22])) {
+    echo "event tracked successfully";
+} else {
+    echo "event tracking failed.";
+}
