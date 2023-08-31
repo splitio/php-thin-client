@@ -59,14 +59,12 @@ class Client implements ClientInterface
     {
         try {
             $properties = $this->inputValidator->validProperties($properties);
-            var_dump($properties);
             return $this->lm->track($key, $trafficType, $eventType, $value, $properties);
         } catch (ValidationException $exc) {
             $this->logger->error("error validating event properties: " . $exc->getMessage());
         } catch (\Exception $exc) {
             $this->logger->error($exc);
         }
-
         return false;
     }
 

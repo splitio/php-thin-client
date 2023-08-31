@@ -17,7 +17,11 @@
     "type": "library",
     "autoload": {
         "psr-4": {
-            "SplitIO\\ThinSdk\\": "src/",
+            "SplitIO\\ThinSdk\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "SplitIO\\Test\\": "tests/"
         }
     },

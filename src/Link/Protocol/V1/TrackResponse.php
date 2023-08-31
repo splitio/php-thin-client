@@ -23,10 +23,7 @@ class TrackResponse extends Response
 
     static function fromRaw(/*mixed*/ $raw)/*: mixed*/
     {
-        if (!is_array($raw)) {
-            throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
-        }
-
+        $raw = Enforce::isArray($raw);
         $payload = Enforce::isArray($raw['p']);
         return new TrackResponse(
             Result::from(Enforce::isInt($raw['s'])),
