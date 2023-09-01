@@ -21,7 +21,7 @@ class TrackResponse extends Response
         return $this->success;
     }
 
-    static function fromRaw(/*mixed*/ $raw)/*: mixed*/
+    public static function fromRaw(/*mixed*/ $raw)/*: mixed*/
     {
         $raw = Enforce::isArray($raw);
         $payload = Enforce::isArray($raw['p']);
