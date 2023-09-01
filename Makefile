@@ -1,27 +1,42 @@
 PHP ?= php
 COMPOSER ?= composer
 PHPUNIT ?= vendor/bin/phpunit
+COVERAGE_FILE ?= coverage.xml
+COVERAGE_HTML_PATH ?= coverage.html
+
+SOURCES := $(shell find src -iname "*.php")
+
+.phony: help cleandeps deps test test-args display-coverage
 
 default: help
 
-.phony: test help
+## Remove all downloaded dependencies & lock file
+cleandeps:
+	rm -Rf vendor/ composer.lock
 
-deps:
-	$(COMPOSER) update
+## Install/Update dependencies
+deps: composer.lock vendor/
 
-$(PHPUNIT): deps
-
-## Update window sizes for send/receive buffers used in sockets API (required for UTs)
-seqpacket-pre-test:
+## Update window sizes for send/receive buffers used in sockets API for using SEQPACKET with large payloads (Linux only)
+sock-buf-size-enhance:
 	sudo echo '8000000' > /proc/sys/net/core/wmem_max
 	sudo echo '8000000' > /proc/sys/net/core/rmem_max
 
 ## Run all tests (args optional)
 test:
-	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-clover coverage.xml
-## Run phpunit with specified args
-test-args:
-	$(PHPUNIT) $(ARGS)
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-clover $(COVERAGE_FILE) $(ARGS)
+
+## Display a human readable coverage report after (re)generating it if required.
+display-coverage: $(COVERAGE_HTML_PATH)
+	open $(COVERAGE_HTML_PATH)/index.html
+
+$(COVERAGE_HTML_PATH): $(SOURCES)
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-html $(COVERAGE_HTML_PATH)/
+
+composer.lock vendor/: composer.json
+	$(COMPOSER) update
+
+$(PHPUNIT): deps
 
 # Help target borrowed from: https://docs.cloudposse.com/reference/best-practices/make-best-practices/
 ## This help screen

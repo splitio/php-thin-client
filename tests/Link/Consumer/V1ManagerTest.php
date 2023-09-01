@@ -256,4 +256,44 @@ class V1ManagerTest extends TestCase
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $v1Manager->getTreatment("k", "b", "f", ["a" => 1]);
     }
+
+    public function testTrackHappyPath(): void
+    {
+        $connMock = $this->createMock(RawConnection::class);
+        $connMock->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedTrack']);
+        $connMock->expects($this->exactly(2))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedTrackResp');
+
+        $connFactoryMock = $this->createMock(ConnectionFactory::class);
+        $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
+
+        $serializerMock = $this->createMock(Serializer::class);
+        $serializerMock->expects($this->exactly(2))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forTrack("k", "tt", "et", 1.25, ["a" => 1])],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTrack');
+
+        $serializerMock->expects($this->exactly(2))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedTrackResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['s' => true]],
+            );
+
+        $serializerFactoryMock = $this->createMock(SerializerFactory::class);
+        $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
+
+        $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(true, $v1Manager->track('k', 'tt', 'et', 1.25, ['a' => 1]));
+    }
+
+
 }
+

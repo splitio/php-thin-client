@@ -64,6 +64,14 @@ class V1Manager implements Manager
         return $results;
     }
 
+    public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
+    {
+        return Protocol\V1\TrackResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTrack($key, $trafficType, $eventType, $value, $properties))
+        )->getSuccess();
+    }
+
+
     private function register(string $id, bool $impressionFeedback)
     {
         // this is performed without retries to avoid an endless loop,
