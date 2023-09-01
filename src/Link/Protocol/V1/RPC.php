@@ -79,8 +79,13 @@ class RPC implements Serializable
         );
     }
 
-    public static function forTrack(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): RPC
-    {
+    public static function forTrack(
+        string $key,
+        string $trafficType,
+        string $eventType,
+        ?float $value,
+        ?array $properties
+    ): RPC {
         return new RPC(
             Version::V1(),
             OpCode::Track(),
