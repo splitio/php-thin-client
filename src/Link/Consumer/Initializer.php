@@ -11,7 +11,7 @@ use Psr\Log\LoggerInterface;
 
 class Initializer
 {
-    static function setup(
+    public static function setup(
         Version $version,
         Config\Transfer $transferConfig,
         Config\Serialization $serializationConfig,

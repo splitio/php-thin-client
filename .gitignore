@@ -1,3 +1,6 @@
 vendor
 .php-version
 .phpunit.result.cache
+.phpunit.cache
+coverage.xml
+coverage.html/

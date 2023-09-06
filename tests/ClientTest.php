@@ -7,6 +7,7 @@ use SplitIO\ThinSdk\Utils\ImpressionListener;
 use SplitIO\ThinSdk\Models\Impression;
 use SplitIO\ThinSdk\Link\Consumer\Manager;
 use SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
+use Psr\Log\LoggerInterface;
 
 use PHPUnit\Framework\TestCase;
 
@@ -75,9 +76,14 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->at(0))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]);
-        $ilMock->expects($this->at(1))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]);
-        $ilMock->expects($this->at(2))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]);
+        $ilMock->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+            );
+
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -138,11 +144,14 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->at(0))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123])
-            ->will($this->throwException(new \Exception("qqq")));
-        $ilMock->expects($this->at(1))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123])
-            ->will($this->throwException(new \Exception("qqq")));
-        $ilMock->expects($this->at(2))->method('accept')->with(new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123])
+        $ilMock
+            ->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]],
+            )
             ->will($this->throwException(new \Exception("qqq")));
 
         $client = new Client($manager, $this->logger, $ilMock);
@@ -152,4 +161,41 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testTrack()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('track')
+            ->with('someKey', 'someTrafficType', 'someEventType', 1.25, ['someProp' => 123])
+            ->willReturn(true);
+
+        $client = new Client($manager, $this->logger, null);
+        $this->assertEquals(true, $client->track('someKey', 'someTrafficType', 'someEventType', 1.25, ['someProp' => 123]));
+    }
+
+    public function testTrackInvalidProperties()
+    {
+        $manager = $this->createMock(Manager::class);
+        $logger = $this->createMock(LoggerInterface::class);
+        $logger->expects($this->once())->method('error')
+            ->with("error validating event properties: The maximum size allowed for the properties is 32768 bytes. Current one is 32813 bytes. Event not queued");
+
+        $largePropertySet = [];
+        for ($i = 0; $i < 50000; $i++) {
+            $largePropertySet["xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" . $i] = $i;
+        }
+
+        $client = new Client($manager, $logger, null);
+        $this->assertEquals(false, $client->track('someKey', 'someTrafficType', 'someEventType', 1.25, $largePropertySet));
+    }
+
+    public function testTrackManagerException()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('track')
+            ->with('someKey', 'someTrafficType', 'someEventType', 1.25, ['a' => 1])
+            ->will($this->throwException(new \Exception("abc")));
+
+        $client = new Client($manager, $this->logger, null);
+        $this->assertEquals(false, $client->track('someKey', 'someTrafficType', 'someEventType', 1.25, ['a' => 1]));
+    }
 }

@@ -21,7 +21,7 @@ class TreatmentResponse extends Response
         return $this->evaluationResult;
     }
 
-    static function fromRaw(/*mixed*/ $raw)/*: mixed*/
+    public static function fromRaw(/*mixed*/ $raw)/*: mixed*/
     {
         if (!is_array($raw)) {
             throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
