@@ -51,11 +51,14 @@ class Client implements ClientInterface
             return $toReturn;
         } catch (\Exception $exc) {
             $this->logger->error($exc);
-            return array_reduce($features, function ($r, $k) { $r[$k] = "control"; return $r; }, []);
+            return array_reduce($features, function ($r, $k) {
+                $r[$k] = "control";
+                return $r;
+            }, []);
         }
     }
 
-    public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
+    public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         try {
             $properties = $this->inputValidator->validProperties($properties);

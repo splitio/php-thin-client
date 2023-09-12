@@ -29,5 +29,7 @@ class OpCode extends Enum
 
     private const Track = 0x80;
 
+    private const SplitNames = 0xA0;
+    private const Split = 0xA1;
+    private const Splits = 0xA2;
 }
-

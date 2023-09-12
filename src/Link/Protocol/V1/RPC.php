@@ -99,6 +99,21 @@ class RPC implements Serializable
         );
     }
 
+    public static function forSplitNames(): RPC
+    {
+        return new RPC(Version::V1(), OpCode::SplitNames(), []);
+    }
+
+    public static function forSplit(string $splitName): RPC
+    {
+        return new RPC(Version::V1(), OpCode::Split(), [SplitArgs::SPLIT_NAME()->getValue() => $splitName]);
+    }
+
+    public static function forSplits(): RPC
+    {
+        return new RPC(Version::V1(), OpCode::Splits(), []);
+    }
+
     function getSerializable() /* : mixed */
     {
         return array(
