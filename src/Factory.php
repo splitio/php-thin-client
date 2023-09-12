@@ -38,7 +38,7 @@ class Factory implements FactoryInterface
         return new Client($this->linkManager, $this->logger, $this->config->utils()->impressionListener());
     }
 
-    public function manager(): Manager
+    public function manager(): ManagerInterface
     {
         return new Manager($this->linkManager, $this->logger);
     }
