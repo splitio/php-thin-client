@@ -7,13 +7,15 @@ class Main
     private /*Transfer*/ $transfer;
     private /*Serialization*/ $serialization;
     private /*Logging*/ $logging;
+    private /*Fallback*/ $fallback;
     private /*Utils*/ $utils;
 
-    private function __construct(Transfer $transfer, Serialization $serialization, Logging $logging, Utils $utils)
+    private function __construct(Transfer $transfer, Serialization $serialization, Logging $logging, Fallback $fallback, Utils $utils)
     {
         $this->transfer = $transfer;
         $this->serialization = $serialization;
         $this->logging = $logging;
+        $this->fallback = $fallback;
         $this->utils = $utils;
     }
 
@@ -32,6 +34,11 @@ class Main
         return $this->logging;
     }
 
+    public function fallback(): Fallback
+    {
+        return $this->fallback;
+    }
+
     public function utils(): Utils
     {
         return $this->utils;
@@ -43,6 +50,7 @@ class Main
             Transfer::fromArray($config['transfer']           ?? []),
             Serialization::fromArray($config['serialization'] ?? []),
             Logging::fromArray($config['logging'] ?? []),
+            Fallback::fromArray($config['fallback'] ?? []),
             Utils::fromArray($config['utils'] ?? []),
         );
     }
@@ -53,6 +61,7 @@ class Main
             Transfer::default(),
             Serialization::default(),
             Logging::default(),
+            Fallback::default(),
             Utils::default(),
         );
     }

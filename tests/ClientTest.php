@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\Test\Link\Consumer;
+namespace SplitIO\Test;
 
 use SplitIO\ThinSdk\Client;
 use SplitIO\ThinSdk\Utils\ImpressionListener;

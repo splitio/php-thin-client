@@ -28,9 +28,33 @@ class Factory implements FactoryInterface
         return new Factory(Config\Main::default());
     }
 
-    public static function withConfig(array $config): Factory
+    public static function withConfig(array $config): FactoryInterface
     {
-        return new Factory(Config\Main::fromArray($config));
+        try {
+            return new Factory(Config\Main::fromArray($config));
+        } catch (\Exception $e) {
+
+            try {
+                $parsedConfig = Config\Main::fromArray($config);
+                if ($parsedConfig->fallback()->disable()) { // fallback disabled, re-throw
+                    throw new Fallback\FallbackDisabledException($e);
+                }
+
+                $logger = Helpers::getLogger($parsedConfig->logging());
+                $logger->error(sprintf("error instantiating a factory with supplied config (%s). will return a fallback.", $e->getMessage()));
+                $logger->debug($e);
+                return new Fallback\GenericFallbackFactory($parsedConfig->fallback()->client(), $parsedConfig->fallback()->manager());
+            } catch (Fallback\FallbackDisabledException $e) {
+                // client wants to handle exception himself. re-throw it;
+                throw $e->wrapped();
+            } catch (\Exception $e) {
+                // This branch is virtually unreachable (hence untestable) unless we introduce a bug.
+                // it's basically a safeguard to prevent the customer app from crashing if we do.
+                $logger = Helpers::getLogger(Config\Logging::default());
+                $logger->error(sprintf("error parsing supplied factory config config (%s). will return a fallback.", $e->getMessage()));
+                return new Fallback\GenericFallbackFactory(new Fallback\AlwaysControlClient(), new Fallback\AlwaysEmptyManager());
+            }
+        }
     }
 
     public function client(): ClientInterface
