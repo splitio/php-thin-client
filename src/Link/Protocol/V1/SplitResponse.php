@@ -27,6 +27,9 @@ class SplitResponse extends Response
             throw new \InvalidArgumentException("SplitNamesResponse must be parsed from an array. Got a " . gettype($raw));
         }
 
-        return new SplitResponse(Result::from(Enforce::isInt($raw['s'])), SplitViewResult::fromRaw(Enforce::isArray($raw['p'])));
+        return new SplitResponse(
+            Result::from(Enforce::isInt($raw['s'])),
+            isset($raw['p']) ? SplitViewResult::fromRaw(Enforce::isArray($raw['p'])) : null
+        );
     }
 }

@@ -32,7 +32,7 @@ class SplitsResponse extends Response
             Result::from(Enforce::isInt($raw['s'])),
             array_map(function ($e) {
                 return SplitViewResult::fromRaw(Enforce::isArray($e));
-            }, $payload['s'])
+            }, Enforce::isArray($payload['s']))
         );
     }
 }
