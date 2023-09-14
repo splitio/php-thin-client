@@ -63,12 +63,9 @@ class V1ManagerTest extends TestCase
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(['on', null], $v1Manager->getTreatment("k", "b", "f", ["a" => 1]));
         $this->assertEquals(
-            ['on', null, null],
-            $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
-        );
-        $this->assertEquals(
-            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, null]],
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
             $v1Manager->getTreatments('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
         );
     }
@@ -112,14 +109,14 @@ class V1ManagerTest extends TestCase
         $ilMock = $this->createMock(ImpressionListener::class);
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::fromArray(['impressionListener' => $ilMock]), $this->logger);
         $this->assertEquals(
-            ['on', new ImpressionListenerData('lab1', 123, 1234), null],
+            ['on', new ImpressionListenerData('lab1', 123, 1234)],
             $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
         );
         $this->assertEquals(
             [
-                'f1' => ['on', new ImpressionListenerData('lab1', 123, 1234), null],
-                'f2' => ['on', new ImpressionListenerData('lab2', 124, 1235), null],
-                'f3' => ['off', new ImpressionListenerData('lab3', 125, 1236), null],
+                'f1' => ['on', new ImpressionListenerData('lab1', 123, 1234)],
+                'f2' => ['on', new ImpressionListenerData('lab2', 124, 1235)],
+                'f3' => ['off', new ImpressionListenerData('lab3', 125, 1236)],
             ],
             $v1Manager->getTreatments('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
         );
@@ -199,10 +196,7 @@ class V1ManagerTest extends TestCase
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
-        $this->assertEquals(
-            ['on', null, null],
-            $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
-        );
+        $this->assertEquals(['on', null], $v1Manager->getTreatment("k", "b", "f", ["a" => 1]));
     }
 
     public function test2FailuresCrash(): void

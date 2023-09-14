@@ -46,6 +46,15 @@ class V1Manager implements Manager
             $this->rpcWithReconnect(RPC::forTreatment($key, $bucketingKey, $feature, $attributes))
         )->getEvaluationResult();
 
+        return [$result->getTreatment(), $result->getImpressionListenerData()];
+    }
+
+    public function getTreatmentWithConfig(string $key, ?string $bucketingKey, string $feature, ?array $attributes): array
+    {
+        $result = Protocol\V1\TreatmentResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentWithConfig($key, $bucketingKey, $feature, $attributes))
+        )->getEvaluationResult();
+
         return [$result->getTreatment(), $result->getImpressionListenerData(), $result->getConfig()];
     }
 
@@ -53,6 +62,23 @@ class V1Manager implements Manager
     {
         $response = Protocol\V1\TreatmentsResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTreatments($key, $bucketingKey, $features, $attributes))
+        );
+
+        $results = [];
+        foreach ($features as $idx => $feature) {
+            $result = $response->getEvaluationResult($idx);
+            $results[$feature] = $result == null
+                ? ["control", null, null]
+                : [$result->getTreatment(), $result->getImpressionListenerdata()];
+        }
+
+        return $results;
+    }
+
+    public function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    {
+        $response = Protocol\V1\TreatmentsResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentsWithConfig($key, $bucketingKey, $features, $attributes))
         );
 
         $results = [];
