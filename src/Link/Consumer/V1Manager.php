@@ -44,6 +44,16 @@ class V1Manager implements Manager
     {
         $result = Protocol\V1\TreatmentResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTreatment($key, $bucketingKey, $feature, $attributes))
+        );
+        $result->ensureSuccess();
+
+        return [$result->getEvaluationResult()->getTreatment(), $result->getEvaluationResult()->getImpressionListenerData()];
+    }
+
+    public function getTreatmentWithConfig(string $key, ?string $bucketingKey, string $feature, ?array $attributes): array
+    {
+        $result = Protocol\V1\TreatmentResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentWithConfig($key, $bucketingKey, $feature, $attributes))
         )->getEvaluationResult();
 
         return [$result->getTreatment(), $result->getImpressionListenerData(), $result->getConfig()];
@@ -54,6 +64,25 @@ class V1Manager implements Manager
         $response = Protocol\V1\TreatmentsResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTreatments($key, $bucketingKey, $features, $attributes))
         );
+        $response->ensureSuccess();
+
+        $results = [];
+        foreach ($features as $idx => $feature) {
+            $result = $response->getEvaluationResult($idx);
+            $results[$feature] = $result == null
+                ? ["control", null, null]
+                : [$result->getTreatment(), $result->getImpressionListenerdata()];
+        }
+
+        return $results;
+    }
+
+    public function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    {
+        $response = Protocol\V1\TreatmentsResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentsWithConfig($key, $bucketingKey, $features, $attributes))
+        );
+        $response->ensureSuccess();
 
         $results = [];
         foreach ($features as $idx => $feature) {
@@ -68,26 +97,32 @@ class V1Manager implements Manager
 
     public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
     {
-        return Protocol\V1\TrackResponse::fromRaw(
+        $response = Protocol\V1\TrackResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTrack($key, $trafficType, $eventType, $value, $properties))
-        )->getSuccess();
+        );
+        $response->ensureSuccess();
+        return $response->getEventQueued();
     }
 
     public function splitNames(): array
     {
-        return Protocol\V1\SplitNamesResponse::fromRaw($this->rpcWithReconnect(RPC::forSplitNames()))->getSplitNames();
+        $response = Protocol\V1\SplitNamesResponse::fromRaw($this->rpcWithReconnect(RPC::forSplitNames()));
+        $response->ensureSuccess();
+        return $response->getSplitNames();
     }
 
     public function split(string $splitName): ?SplitView
     {
-        $view = Protocol\V1\SplitResponse::fromRaw($this->rpcWithReconnect(RPC::forSplit($splitName)))->getView();
-        return self::splitResultToView($view);
+        $response = Protocol\V1\SplitResponse::fromRaw($this->rpcWithReconnect(RPC::forSplit($splitName)));
+        $response->ensureSuccess();
+        return self::splitResultToView($response->getView());
     }
 
     public function splits(): array
     {
-        $views = Protocol\V1\SplitsResponse::fromRaw($this->rpcWithReconnect(RPC::forSplits()))->getViews();
-        return array_map([self::class, 'splitResultToView'], $views);
+        $response = Protocol\V1\SplitsResponse::fromRaw($this->rpcWithReconnect(RPC::forSplits()));
+        $response->ensureSuccess();
+        return array_map([self::class, 'splitResultToView'], $response->getViews());
     }
 
     private function register(string $id, bool $impressionFeedback)
@@ -95,7 +130,8 @@ class V1Manager implements Manager
         // this is performed without retries to avoid an endless loop,
         // since register should occur only once per connection. if it fails,
         // it's not worth retrying for this single evaluation, and probably better off to just return 'control'.
-        return $this->performRPC(RPC::forRegister($id, new Protocol\V1\RegisterFlags($impressionFeedback)));
+        $response = Protocol\V1\RegisterResponse::fromRaw($this->performRPC(RPC::forRegister($id, new Protocol\V1\RegisterFlags($impressionFeedback))));
+        $response->ensureSuccess();
     }
 
     private function rpcWithReconnect(RPC $rpc): array

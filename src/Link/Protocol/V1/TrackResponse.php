@@ -8,25 +8,26 @@ use SplitIO\ThinSdk\Foundation\Lang\Enforce;
 class TrackResponse extends Response
 {
 
-    private $success;
+    private $eventQueued;
 
-    public function __construct(Result $status, bool $success)
+    public function __construct(Result $status, bool $eventQueued)
     {
         parent::__construct($status);
-        $this->success = $success;
+        $this->eventQueued = $eventQueued;
     }
 
-    public function getSuccess(): bool
+    public function getEventQueued(): bool
     {
-        return $this->success;
+        return $this->eventQueued;
     }
 
-    public static function fromRaw(/*mixed*/ $raw)/*: mixed*/
+    public static function fromRaw(/*mixed*/$raw)/*: mixed*/
     {
         $raw = Enforce::isArray($raw);
         $payload = Enforce::isArray($raw['p']);
         return new TrackResponse(
             Result::from(Enforce::isInt($raw['s'])),
-            Enforce::isBool($payload['s']));
+            Enforce::isBool($payload['s'])
+        );
     }
 }

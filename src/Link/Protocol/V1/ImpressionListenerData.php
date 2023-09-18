@@ -35,10 +35,7 @@ class ImpressionListenerData implements Deserializable
 
     public static function fromRaw(/*mixed*/$raw)/*: mixed*/
     {
-        if (!is_array($raw)) {
-            throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
-        }
-
+        Enforce::isArray($raw);
         return new ImpressionListenerData(Enforce::isString($raw['l']), Enforce::isInt($raw['c']), enforce::isInt($raw['m']));
     }
 }

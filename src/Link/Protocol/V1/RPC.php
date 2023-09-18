@@ -49,34 +49,22 @@ class RPC implements Serializable
 
     public static function forTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): RPC
     {
-        return new RPC(
-            Version::V1(),
-            OpCode::Treatment(),
-            array(
-                TreatmentArgs::KEY()->getValue()           => $key,
-                TreatmentArgs::BUCKETING_KEY()->getValue() => $bucketingKey,
-                TreatmentArgs::FEATURE()->getValue()       => $feature,
-                TreatmentArgs::ATTRIBUTES()->getValue()    => ($attributes != null && count($attributes) > 0)
-                    ? $attributes
-                    : null,
-            )
-        );
+        return self::_forTreatment($key, $bucketingKey, $feature, $attributes, false);
+    }
+
+    public static function forTreatmentWithConfig(string $key, ?string $bucketingKey, string $feature, ?array $attributes): RPC
+    {
+        return self::_forTreatment($key, $bucketingKey, $feature, $attributes, true);
     }
 
     public static function forTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): RPC
     {
-        return new RPC(
-            Version::V1(),
-            OpCode::Treatments(),
-            array(
-                TreatmentsArgs::KEY()->getValue()           => $key,
-                TreatmentsArgs::BUCKETING_KEY()->getValue() => $bucketingKey,
-                TreatmentsArgs::FEATURES()->getValue()      => $features,
-                TreatmentsArgs::ATTRIBUTES()->getValue()    => ($attributes != null && count($attributes) > 0)
-                    ? $attributes
-                    : null,
-            )
-        );
+        return self::_forTreatments($key, $bucketingKey, $features, $attributes, false);
+    }
+
+    public static function forTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes): RPC
+    {
+        return self::_forTreatments($key, $bucketingKey, $features, $attributes, true);
     }
 
     public static function forTrack(
@@ -120,6 +108,34 @@ class RPC implements Serializable
             "v"  => $this->getVersion()->getValue(),
             "o"  => $this->getOpCode()->getValue(),
             "a"  => $this->getArgs(),
+        );
+    }
+
+    private static function _forTreatment(string $k, ?string $bk, string $f, ?array $a, bool $includeConfig): RPC
+    {
+        return new RPC(
+            Version::V1(),
+            $includeConfig ? OpCode::TreatmentWithConfig() : OpCode::Treatment(),
+            array(
+                TreatmentArgs::KEY()->getValue()           => $k,
+                TreatmentArgs::BUCKETING_KEY()->getValue() => $bk,
+                TreatmentArgs::FEATURE()->getValue()       => $f,
+                TreatmentArgs::ATTRIBUTES()->getValue()    => ($a != null && count($a) > 0) ? $a : null,
+            )
+        );
+    }
+
+    public static function _forTreatments(string $k, ?string $bk, array $f, ?array $a, bool $includeConfig): RPC
+    {
+        return new RPC(
+            Version::V1(),
+            $includeConfig ? OpCode::TreatmentsWithConfig() : OpCode::Treatments(),
+            [
+                TreatmentsArgs::KEY()->getValue()           => $k,
+                TreatmentsArgs::BUCKETING_KEY()->getValue() => $bk,
+                TreatmentsArgs::FEATURES()->getValue()      => $f,
+                TreatmentsArgs::ATTRIBUTES()->getValue()    => ($a != null && count($a) > 0) ? $a : null,
+            ]
         );
     }
 }
