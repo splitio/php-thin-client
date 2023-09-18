@@ -28,10 +28,7 @@ class TreatmentsResponse extends Response
 
     public static function fromRaw(/*mixed*/$raw)/*: mixed*/
     {
-        if (!is_array($raw)) {
-            throw new \InvalidArgumentException("TreatmentResponse must be parsed from an array. Got a " . gettype($raw));
-        }
-
+        Enforce::isArray($raw);
         return new TreatmentsResponse(
             Result::from(Enforce::isInt($raw['s'])),
             array_map(

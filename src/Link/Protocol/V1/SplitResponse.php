@@ -23,10 +23,7 @@ class SplitResponse extends Response
 
     public static function fromRaw(/*array*/$raw): SplitResponse
     {
-        if (!is_array($raw)) {
-            throw new \InvalidArgumentException("SplitNamesResponse must be parsed from an array. Got a " . gettype($raw));
-        }
-
+        Enforce::isArray($raw);
         return new SplitResponse(
             Result::from(Enforce::isInt($raw['s'])),
             isset($raw['p']) ? SplitViewResult::fromRaw(Enforce::isArray($raw['p'])) : null

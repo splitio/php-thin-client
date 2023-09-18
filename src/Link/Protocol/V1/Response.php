@@ -20,5 +20,10 @@ abstract class Response implements Deserializable
         return $this->result;
     }
 
-    static abstract function fromRaw(/*mixed*/ $raw)/*: mixed*/;
+    public function ensureSuccess(): void
+    {
+        if ($this->result != Result::Ok()) {
+            throw new OperationFailureException("operation failed with status code: " . $this->result->getKey());
+        }
+    }
 }
