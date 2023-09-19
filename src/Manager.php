@@ -24,6 +24,7 @@ class Manager implements ManagerInterface
             return $this->link->splitNames();
         } catch (\Exception $exc) {
             $this->logger->error("failed to fetch split names: " . $exc->getMessage());
+            $this->logger->debug("full trace:" . $exc);
         }
         return [];
     }
@@ -34,6 +35,7 @@ class Manager implements ManagerInterface
             return $this->link->split($name);
         } catch (\Exception $exc) {
             $this->logger->error("failed to fetch split information: " . $exc->getMessage());
+            $this->logger->debug("full trace:" . $exc);
         }
         return null;
     }
