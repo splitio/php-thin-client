@@ -70,7 +70,7 @@ class V1Manager implements Manager
         foreach ($features as $idx => $feature) {
             $result = $response->getEvaluationResult($idx);
             $results[$feature] = $result == null
-                ? ["control", null, null]
+                ? ["control", null]
                 : [$result->getTreatment(), $result->getImpressionListenerdata()];
         }
 

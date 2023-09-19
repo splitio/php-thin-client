@@ -92,6 +92,57 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testGetTreatmentWithConfigAndListener()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentWithConfig')
+            ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
+            ->willReturn(['on', new ImpressionListenerData('lab1', 123, 123456), '{"a": 1}']);
+
+        $ilMock = $this->createMock(ImpressionListener::class);
+        $ilMock->expects($this->once())
+            ->method('accept')
+            ->with(new Impression('someKey', 'someBuck', 'someFeature', 'on', 'lab1', 123, 123456), ['someAttr' => 123]);
+
+        $client = new Client($manager, $this->logger, $ilMock);
+        $this->assertEquals(
+            ['treatment' => 'on', 'config' => '{"a": 1}'],
+            $client->getTreatmentWithConfig('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
+        );
+    }
+
+    public function testGetTreatmentsWithConfigAndListener()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentsWithConfig')
+            ->with('someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123])
+            ->willReturn([
+                'someFeature1' => ['on', new ImpressionListenerData('lab1', 123, 123456), null],
+                'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
+                'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), '{"a": 2}'],
+            ]);
+
+        $ilMock = $this->createMock(ImpressionListener::class);
+        $ilMock->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+            );
+
+
+        $client = new Client($manager, $this->logger, $ilMock);
+        $this->assertEquals(
+            [
+                'someFeature1' => ['treatment' => 'on', 'config' => null],
+                'someFeature2' => ['treatment' => 'off', 'config' => null],
+                'someFeature3' => ['treatment' => 'n/a', 'config' => '{"a": 2}']
+            ],
+            $client->getTreatmentsWithConfig('someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123])
+        );
+    }
+
     public function testGetTreatmentExceptionReturnsControl()
     {
         $manager = $this->createMock(Manager::class);
