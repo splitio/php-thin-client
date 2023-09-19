@@ -26,7 +26,7 @@ class Client implements ClientInterface
         $this->inputValidator = new InputValidator($logger);
     }
 
-    public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes): string
+    public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes = null): string
     {
         try {
             list($treatment, $ilData) = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
@@ -38,7 +38,7 @@ class Client implements ClientInterface
         }
     }
 
-    public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes = null): array
     {
         try {
             $results = $this->lm->getTreatments($key, $bucketingKey, $features, $attributes);
@@ -51,11 +51,46 @@ class Client implements ClientInterface
             return $toReturn;
         } catch (\Exception $exc) {
             $this->logger->error($exc);
-            return array_reduce($features, function ($r, $k) { $r[$k] = "control"; return $r; }, []);
+            return array_reduce($features, function ($r, $k) {
+                $r[$k] = "control";
+                return $r;
+            }, []);
         }
     }
 
-    public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
+    public function getTreatmentWithConfig(string $key, ?string $bucketingKey, string $feature, ?array $attributes = null): array
+    {
+        try {
+            list($treatment, $ilData, $config) = $this->lm->getTreatmentWithConfig($key, $bucketingKey, $feature, $attributes);
+            $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            return ['treatment' => $treatment, 'config' => $config];
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return "control";
+        }
+    }
+
+    public function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes = null): array
+    {
+        try {
+            $results = $this->lm->getTreatmentsWithConfig($key, $bucketingKey, $features, $attributes);
+            $toReturn = [];
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData, $config) = $result;
+                $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return array_reduce($features, function ($r, $k) {
+                $r[$k] = ['treatment' => 'control', 'config' => null];
+                return $r;
+            }, []);
+        }
+    }
+
+    public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         try {
             $properties = $this->inputValidator->validProperties($properties);

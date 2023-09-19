@@ -4,7 +4,7 @@ namespace SplitIO\ThinSdk\Link\Transfer;
 
 class UnixPacket implements RawConnection
 {
-    const DEFAULT_RECEIVE_BUFFER_SIZE = 64 * 1024; // 64k
+    const DEFAULT_RECEIVE_BUFFER_SIZE = 212992; // linux default
 
     private /*string*/ $targetSockFN;
     private /*\Socket*/ $sock;
@@ -33,20 +33,25 @@ class UnixPacket implements RawConnection
             }
             $curr = @socket_get_option($this->sock, SOL_SOCKET, SO_SNDBUF);
             if ($curr != $options['sendBufferSize']) {
-                throw new ConnectionException(sprintf("send-buffer allocation failed. Expected=%d, Actual=%d",
-                    $options['sendBufferSize'], $curr));
+                throw new ConnectionException(sprintf(
+                    "send-buffer allocation failed. Expected=%d, Actual=%d",
+                    $options['sendBufferSize'],
+                    $curr
+                ));
             }
-
         }
 
         if (isset($options['recvBufferSize'])) {
             if (!@socket_set_option($this->sock, SOL_SOCKET, SO_RCVBUF, $options['recvBufferSize'])) {
                 throw new ConnectionException("cannot allocate requested receive-buffer size. please check your OS config");
-            $curr = @socket_get_option($this->sock, SOL_SOCKET, SO_RCVBUF);
-            if ($curr != $options['recvBufferSize']) {
-                throw new ConnectionException(sprintf("receive-buffer allocation failed. Expected=%d, Actual=%d",
-                    $options['recvBufferSize'], $curr));
-            }
+                $curr = @socket_get_option($this->sock, SOL_SOCKET, SO_RCVBUF);
+                if ($curr != $options['recvBufferSize']) {
+                    throw new ConnectionException(sprintf(
+                        "receive-buffer allocation failed. Expected=%d, Actual=%d",
+                        $options['recvBufferSize'],
+                        $curr
+                    ));
+                }
             }
             $this->maxRecvSize = $options['recvBufferSize'];
         }
@@ -86,5 +91,4 @@ class UnixPacket implements RawConnection
     {
         @socket_close($this->sock);
     }
-
 }

@@ -13,6 +13,7 @@ use SplitIO\ThinSdk\Link\Transfer\RawConnection;
 use SplitIO\ThinSdk\Link\Transfer\ConnectionException;
 use SplitIO\ThinSdk\Link\Serialization\SerializerFactory;
 use SplitIO\ThinSdk\Link\Serialization\Serializer;
+use \SplitIO\ThinSdk\SplitView;
 
 use PHPUnit\Framework\TestCase;
 
@@ -29,46 +30,70 @@ class V1ManagerTest extends TestCase
     public function testHappyExchangeNoImpListener(): void
     {
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->exactly(3))
+        $connMock->expects($this->exactly(5))
             ->method('sendMessage')
-            ->withConsecutive(['serializedRegister'], ['serializedTreatment'], ['serializedTreatments']);
-        $connMock->expects($this->exactly(3))
+            ->withConsecutive(
+                ['serializedRegister'],
+                ['serializedTreatment'],
+                ['serializedTreatments'],
+                ['serializedTreatmentWithConfig'],
+                ['serializedTreatmentsWithConfig']
+            );
+        $connMock->expects($this->exactly(5))
             ->method('readMessage')
-            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedTreatmentResp', 'serializedTreatmentsResp');
+            ->willReturnOnConsecutiveCalls(
+                'serializedRegisterResp',
+                'serializedTreatmentResp',
+                'serializedTreatmentsResp',
+                'serilaizedTreatmentWithCnfigResp',
+                'serializedTreatmentsWithConfig'
+            );
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->exactly(3))
+        $serializerMock->expects($this->exactly(5))
             ->method('serialize')
             ->withConsecutive(
                 [RPC::forRegister('someId', new RegisterFlags(false))],
                 [RPC::forTreatment("k", "b", "f", ["a" => 1])],
                 [RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
+                [RPC::forTreatmentWithConfig("k", "b", "f", ["a" => 1])],
+                [RPC::forTreatmentsWithConfig("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
             )
-            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedTreatment', 'serializedTreatments');
+            ->willReturnOnConsecutiveCalls(
+                'serializedRegister',
+                'serializedTreatment',
+                'serializedTreatments',
+                'serializedTreatmentWithConfig',
+                'serializedTreatmentsWithConfig'
+            );
 
-        $serializerMock->expects($this->exactly(3))
+        $serializerMock->expects($this->exactly(5))
             ->method('deserialize')
             ->withConsecutive(['serializedRegisterResp'], ['serializedTreatmentResp'], ['serializedTreatmentsResp'])
             ->willReturnOnConsecutiveCalls(
                 ['s' => 0x01],
                 ['s' => 0x01, 'p' => ['t' => 'on']],
-                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]]
+                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]],
+                ['s' => 0x01, 'p' => ['t' => 'on', 'c' => '{"a": 1}']],
+                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off', 'c' => '{"a": 2}']]]]
             );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(['on', null], $v1Manager->getTreatment("k", "b", "f", ["a" => 1]));
         $this->assertEquals(
-            ['on', null, null],
-            $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
-        );
-        $this->assertEquals(
-            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, null]],
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
             $v1Manager->getTreatments('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
+        );
+        $this->assertEquals(['on', null, '{"a": 1}'], $v1Manager->getTreatmentWithConfig("k", "b", "f", ["a" => 1]));
+        $this->assertEquals(
+            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            $v1Manager->getTreatmentsWithConfig('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
         );
     }
 
@@ -111,14 +136,14 @@ class V1ManagerTest extends TestCase
         $ilMock = $this->createMock(ImpressionListener::class);
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::fromArray(['impressionListener' => $ilMock]), $this->logger);
         $this->assertEquals(
-            ['on', new ImpressionListenerData('lab1', 123, 1234), null],
+            ['on', new ImpressionListenerData('lab1', 123, 1234)],
             $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
         );
         $this->assertEquals(
             [
-                'f1' => ['on', new ImpressionListenerData('lab1', 123, 1234), null],
-                'f2' => ['on', new ImpressionListenerData('lab2', 124, 1235), null],
-                'f3' => ['off', new ImpressionListenerData('lab3', 125, 1236), null],
+                'f1' => ['on', new ImpressionListenerData('lab1', 123, 1234)],
+                'f2' => ['on', new ImpressionListenerData('lab2', 124, 1235)],
+                'f3' => ['off', new ImpressionListenerData('lab3', 125, 1236)],
             ],
             $v1Manager->getTreatments('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
         );
@@ -198,10 +223,7 @@ class V1ManagerTest extends TestCase
         $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
-        $this->assertEquals(
-            ['on', null, null],
-            $v1Manager->getTreatment("k", "b", "f", ["a" => 1])
-        );
+        $this->assertEquals(['on', null], $v1Manager->getTreatment("k", "b", "f", ["a" => 1]));
     }
 
     public function test2FailuresCrash(): void
@@ -257,7 +279,7 @@ class V1ManagerTest extends TestCase
         $v1Manager->getTreatment("k", "b", "f", ["a" => 1]);
     }
 
-    public function testTrackHappyPath(): void
+    public function testTrack(): void
     {
         $connMock = $this->createMock(RawConnection::class);
         $connMock->expects($this->exactly(2))
@@ -294,6 +316,146 @@ class V1ManagerTest extends TestCase
         $this->assertEquals(true, $v1Manager->track('k', 'tt', 'et', 1.25, ['a' => 1]));
     }
 
+    public function testSplitNames(): void
+    {
+        $connMock = $this->createMock(RawConnection::class);
+        $connMock->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedSplitNames']);
+        $connMock->expects($this->exactly(2))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedSplitNamesResp');
 
+        $connFactoryMock = $this->createMock(ConnectionFactory::class);
+        $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
+
+        $serializerMock = $this->createMock(Serializer::class);
+        $serializerMock->expects($this->exactly(2))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forSplitNames()],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedSplitNames');
+
+        $serializerMock->expects($this->exactly(2))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedSplitNamesResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['n' => ['s1', 's2']]],
+            );
+
+        $serializerFactoryMock = $this->createMock(SerializerFactory::class);
+        $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
+
+        $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(['s1', 's2'], $v1Manager->splitNames());
+    }
+
+    public function testSplit(): void
+    {
+        $connMock = $this->createMock(RawConnection::class);
+        $connMock->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedSplit']);
+        $connMock->expects($this->exactly(2))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedSplitResp');
+
+        $connFactoryMock = $this->createMock(ConnectionFactory::class);
+        $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
+
+        $serializerMock = $this->createMock(Serializer::class);
+        $serializerMock->expects($this->exactly(2))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forSplit('someName')],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedSplit');
+
+        $serializerMock->expects($this->exactly(2))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedSplitResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => [
+                    'n' => 'someName',
+                    't' => 'someTrafficType',
+                    'k' => true,
+                    's' => ['on', 'off'],
+                    'c' => 123,
+                    'f' => ['on' => 'some'],
+                ]],
+            );
+
+        $serializerFactoryMock = $this->createMock(SerializerFactory::class);
+        $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
+
+        $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(
+            new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
+            $v1Manager->split('someName')
+        );
+    }
+    public function testSplits(): void
+    {
+        $connMock = $this->createMock(RawConnection::class);
+        $connMock->expects($this->exactly(2))
+            ->method('sendMessage')
+            ->withConsecutive(['serializedRegister'], ['serializedSplits']);
+        $connMock->expects($this->exactly(2))
+            ->method('readMessage')
+            ->willReturnOnConsecutiveCalls('serializedRegisterResp', 'serializedSplitsResp');
+
+        $connFactoryMock = $this->createMock(ConnectionFactory::class);
+        $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
+
+        $serializerMock = $this->createMock(Serializer::class);
+        $serializerMock->expects($this->exactly(2))
+            ->method('serialize')
+            ->withConsecutive(
+                [RPC::forRegister('someId', new RegisterFlags(false))],
+                [RPC::forSplits()],
+            )
+            ->willReturnOnConsecutiveCalls('serializedRegister', 'serializedSplits');
+
+        $serializerMock->expects($this->exactly(2))
+            ->method('deserialize')
+            ->withConsecutive(['serializedRegisterResp'], ['serializedSplitsResp'])
+            ->willReturnOnConsecutiveCalls(
+                ['s' => 0x01],
+                ['s' => 0x01, 'p' => ['s' => [
+                    [
+                        'n' => 'someName',
+                        't' => 'someTrafficType',
+                        'k' => true,
+                        's' => ['on', 'off'],
+                        'c' => 123,
+                        'f' => ['on' => 'some'],
+                    ],
+                    [
+                        'n' => 'someName2',
+                        't' => 'someTrafficType',
+                        'k' => false,
+                        's' => ['on', 'off'],
+                        'c' => 124,
+                        'f' => null,
+                    ],
+                ]]],
+            );
+
+        $serializerFactoryMock = $this->createMock(SerializerFactory::class);
+        $serializerFactoryMock->expects($this->once())->method('create')->willReturn($serializerMock);
+
+        $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
+        $this->assertEquals(
+            [
+                new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
+                new SplitView('someName2', 'someTrafficType', false, ['on', 'off'], 124, null),
+            ],
+            $v1Manager->splits()
+        );
+    }
 }
-

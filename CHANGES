@@ -1,5 +1,10 @@
+1.2.0 (Sep 19, 2023):
+- Add support for Client/GetTreatment(s)WithConfig operations.
+- Add support for Manager operations. 
+- Add default arguments for value & properties in .track()
+- Enforce status code validation on rpc responses.
+
 1.1.0 (Sep 6, 2023):
-====================
 - Fix issue with datetime attributes on php7
 - Remove unit tests from autoload
 - Add support for .track()
