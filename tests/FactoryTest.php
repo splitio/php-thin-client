@@ -13,7 +13,7 @@ use SplitIO\ThinSdk\Link\Serialization\MessagePack\DateTimeExtension;
 use SplitIO\ThinSdk\Link\Protocol\V1\RPC;
 use SplitIO\ThinSdk\Link\Protocol\V1\RegisterFlags;
 
-use SplitIO\Test\Utils\SocketServerRemoteControl;
+use SplitIO\Test\TestUtils\SocketServerRemoteControl;
 
 use MessagePack\Packer;
 use MessagePack\Extension\TimestampExtension;

@@ -4,7 +4,7 @@ namespace SplitIO\Test\Link\Transfer;
 
 use SplitIO\ThinSdk\Link\Transfer\UnixStream;
 use SplitIO\ThinSdk\Link\Transfer\ConnectionException;
-use SplitIO\Test\Utils\SocketServerRemoteControl;
+use SplitIO\Test\TestUtils\SocketServerRemoteControl;
 
 use PHPUnit\Framework\TestCase;
 
@@ -15,11 +15,10 @@ class UnixStreamTest extends TestCase
     public function setUp(): void
     {
         if (getenv("DEBUG") == true) {
-            fwrite(STDERR, "preparing socket server for test: `" . get_class($this)."::".$this->getName()."`\n");
+            fwrite(STDERR, "preparing socket server for test: `" . get_class($this) . "::" . $this->getName() . "`\n");
         }
 
         $this->socketServerRC = new SocketServerRemoteControl();
-
     }
 
     public function testHappyExchange(): void

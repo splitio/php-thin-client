@@ -59,11 +59,34 @@ class Factory implements FactoryInterface
 
     public function client(): ClientInterface
     {
-        return new Client($this->linkManager, $this->logger, $this->config->utils()->impressionListener());
+        return new Client($this->linkManager, $this->logger, $this->config->utils()->impressionListener(), $this->getCache());
     }
 
     public function manager(): ManagerInterface
     {
         return new Manager($this->linkManager, $this->logger);
+    }
+
+    private function getCache(): Utils\EvalCache\Cache
+    {
+        $uc = $this->config->utils();
+        $cache = new Utils\EvalCache\NoCache();
+        switch ($uc->evaluationCache()) {
+            case 'key-only':
+                $cache = new Utils\EvalCache\CacheImpl(new Utils\EvalCache\KeyOnlyHasher());
+                break;
+            case 'key-attribute':
+                $cache = new Utils\EvalCache\CacheImpl(new Utils\EvalCache\KeyAttributeCRC32Hasher());
+                break;
+            case 'custom':
+                if (is_null($uc->customCacheHash())) {
+                    $this->logger->error(sprintf(
+                        "config indicates 'custom' evaluation cache hasher, but no 'customCacheHash' passed. Cache will be disabled"
+                    ));
+                } else {
+                    $cache = new Utils\EvalCache\CacheImpl($uc->customCacheHash());
+                }
+        }
+        return $cache;
     }
 };

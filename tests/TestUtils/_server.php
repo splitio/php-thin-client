@@ -4,7 +4,7 @@ require_once dirname(__FILE__) . "/../../vendor/autoload.php";
 
 use \SplitIO\ThinSdk\Link\Transfer\Framing\LengthPrefix;
 use \SplitIO\ThinSdk\Link\Transfer\Framing\Framer;
-use \SplitIO\Test\Utils\SocketServerRemoteControl;
+use \SplitIO\Test\TestUtils\SocketServerRemoteControl;
 
 function debug($str)
 {
@@ -113,7 +113,6 @@ class SocketServer
                     debug("handling test case #$idx");
                     $this->handleTestCase($testCase, $clientSock);
                 }
-
             } catch (SocketCloseRequested $exc) {
                 ($exc); // do nothing without complaining about an unused variable
             } finally {
