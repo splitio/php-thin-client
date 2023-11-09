@@ -2,7 +2,7 @@
 
 namespace SplitIO\Test\Utils\EvalCache;
 
-use SplitIO\ThinSdk\Config\Utils;
+use SplitIO\ThinSdk\Config;
 use SplitIO\ThinSdk\Utils\EvalCache;
 use SplitIO\ThinSdk\Utils\EvalCache\Helpers;
 // use SplitIO\ThinSdk\Utils\EvalCache\InputHasher;
@@ -17,11 +17,11 @@ class HelpersTest extends TestCase
     {
 
         $logger = $this->createMock(LoggerInterface::class);
-        $c = Helpers::getCache(Utils::fromArray([
-            'evaluationCache' => 'none',
-            'customCacheHash' => null,
-            'cacheEvictionPolicy' => null,
-            'cacheMaxSize' => null,
+        $c = Helpers::getCache(Config\EvaluationCache::fromArray([
+            'typr' => 'none',
+            'customHash' => null,
+            'evictionPolicy' => null,
+            'maxSize' => null,
         ]), $logger);
 
         $this->assertEquals(new EvalCache\NoCache(), $c);
@@ -31,11 +31,11 @@ class HelpersTest extends TestCase
     {
 
         $logger = $this->createMock(LoggerInterface::class);
-        $c = Helpers::getCache(Utils::fromArray([
-            'evaluationCache' => 'key-only',
-            'customCacheHash' => null,
-            'cacheEvictionPolicy' => 'none',
-            'cacheMaxSize' => 1001,
+        $c = Helpers::getCache(Config\EvaluationCache::fromArray([
+            'type' => 'key-only',
+            'customHash' => null,
+            'evictionPolicy' => 'none',
+            'maxSize' => 1001,
         ]), $logger);
 
         $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyOnlyHasher(), new EvalCache\NoEviction(1001)), $c);
@@ -43,13 +43,12 @@ class HelpersTest extends TestCase
 
     public function testCacheBuildingRandomEviction()
     {
-
         $logger = $this->createMock(LoggerInterface::class);
-        $c = Helpers::getCache(Utils::fromArray([
-            'evaluationCache' => 'key-only',
-            'customCacheHash' => null,
-            'cacheEvictionPolicy' => 'random',
-            'cacheMaxSize' => 1000,
+        $c = Helpers::getCache(Config\EvaluationCache::fromArray([
+            'type' => 'key-only',
+            'customHash' => null,
+            'evictionPolicy' => 'random',
+            'maxSize' => 1000,
         ]), $logger);
 
         $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyOnlyHasher(), new EvalCache\RandomEviction(1000)), $c);

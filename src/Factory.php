@@ -61,7 +61,12 @@ class Factory implements FactoryInterface
     public function client(): ClientInterface
     {
         $uc = $this->config->utils();
-        return new Client($this->linkManager, $this->logger, $uc->impressionListener(), EvalCache\Helpers::getCache($uc, $this->logger));
+        return new Client(
+            $this->linkManager,
+            $this->logger,
+            $uc->impressionListener(),
+            EvalCache\Helpers::getCache($uc->evaluationCache(), $this->logger)
+        );
     }
 
     public function manager(): ManagerInterface
