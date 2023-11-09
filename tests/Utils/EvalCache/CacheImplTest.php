@@ -11,7 +11,7 @@ class CacheImplTest extends TestCase
 {
     public function testWithoutConfig()
     {
-        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction());
+        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0));
         $c->set('key', 'f1', null, 'on');
         $this->assertEquals('on', $c->get('key', 'f1', null));
         $this->assertEquals(null, $c->get('key2', 'f1', null));
@@ -44,7 +44,7 @@ class CacheImplTest extends TestCase
     public function testWithConfig()
     {
         // setting with config works for both `get`, `getMany`, `getWithConfig`, `getManyWithConfig`
-        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction());
+        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0));
         $c->setWithConfig('key', 'f1', null, 'on', 'some');
         $this->assertEquals('on', $c->get('key', 'f1', null));
         $this->assertEquals(['treatment' => 'on', 'config' => 'some'], $c->getWithConfig('key', 'f1', null));

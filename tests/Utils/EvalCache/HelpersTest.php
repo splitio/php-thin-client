@@ -35,10 +35,10 @@ class HelpersTest extends TestCase
             'evaluationCache' => 'key-only',
             'customCacheHash' => null,
             'cacheEvictionPolicy' => 'none',
-            'cacheMaxSize' => 1000,
+            'cacheMaxSize' => 1001,
         ]), $logger);
 
-        $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyOnlyHasher(), new EvalCache\NoEviction()), $c);
+        $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyOnlyHasher(), new EvalCache\NoEviction(1001)), $c);
     }
 
     public function testCacheBuildingRandomEviction()
@@ -53,32 +53,5 @@ class HelpersTest extends TestCase
         ]), $logger);
 
         $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyOnlyHasher(), new EvalCache\RandomEviction(1000)), $c);
-    }
-
-    public function testCacheBuildingMostRecentEviction()
-    {
-        $logger = $this->createMock(LoggerInterface::class);
-        $c = Helpers::getCache(Utils::fromArray([
-            'evaluationCache' => 'key-attributes',
-            'customCacheHash' => null,
-            'cacheEvictionPolicy' => 'most-recent',
-            'cacheMaxSize' => 1000,
-        ]), $logger);
-
-        $this->assertEquals(new EvalCache\CacheImpl(new EvalCache\KeyAttributeCRC32Hasher(), new EvalCache\MostRecentEviction(1000)), $c);
-    }
-
-    public function testCacheBuildingCustomInputHash()
-    {
-        $ihMock = $this->createMock(EvalCache\InputHasher::class);
-        $logger = $this->createMock(LoggerInterface::class);
-        $c = Helpers::getCache(Utils::fromArray([
-            'evaluationCache' => 'custom',
-            'customCacheHash' => $ihMock,
-            'cacheEvictionPolicy' => 'most-recent',
-            'cacheMaxSize' => 1000,
-        ]), $logger);
-
-        $this->assertEquals(new EvalCache\CacheImpl($ihMock, new EvalCache\MostRecentEviction(1000)), $c);
     }
 }

@@ -27,10 +27,14 @@ class UtilsTest extends TestCase
             'impressionListener' => $ilMock,
             'evaluationCache' => 'custom',
             'customCacheHash' => $ihMock,
+            'cacheEvictionPolicy' => 'random',
+            'cacheMaxSize' => 123,
         ]);
 
         $this->assertEquals($ilMock, $cfg->impressionListener());
         $this->assertEquals('custom', $cfg->evaluationCache());
         $this->assertEquals($ihMock, $cfg->customCacheHash());
+        $this->assertEquals('random', $cfg->cacheEvictionPolicy());
+        $this->assertEquals(123, $cfg->cacheMaxSize());
     }
 }

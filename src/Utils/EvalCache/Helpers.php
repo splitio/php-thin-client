@@ -36,10 +36,8 @@ class Helpers
         switch ($config->cacheEvictionPolicy()) {
             case 'random':
                 return new RandomEviction($config->cacheMaxSize());
-            case 'most-recent':
-                return new MostRecentEviction($config->cacheMaxSize());
             default:
-                return new NoEviction();
+                return new NoEviction($config->cacheMaxSize());
         }
     }
 }
