@@ -11,12 +11,16 @@ class Utils
     private /*?ImpressionListener*/ $listener;
     private /*?string*/ $evaluationCache;
     private /*?InputHasher*/ $customCacheHash;
+    private /*string*/ $cacheEvictionPolicy;
+    private /*int*/ $cacheMaxSize;
 
-    private function __construct(?ImpressionListener $listener, ?string $evaluationCache, ?InputHasher $customCacheHash)
+    private function __construct(?ImpressionListener $listener, string $evaluationCache, ?InputHasher $customCacheHash, string $cacheEvictionPolicy, int $cacheMaxSize)
     {
         $this->listener = $listener;
         $this->evaluationCache = $evaluationCache;
         $this->customCacheHash = $customCacheHash;
+        $this->cacheEvictionPolicy = $cacheEvictionPolicy;
+        $this->cacheMaxSize = $cacheMaxSize;
     }
 
     public function impressionListener(): ?ImpressionListener
@@ -24,7 +28,7 @@ class Utils
         return $this->listener;
     }
 
-    public function evaluationCache(): ?string
+    public function evaluationCache(): string
     {
         return $this->evaluationCache;
     }
@@ -34,6 +38,16 @@ class Utils
         return $this->customCacheHash;
     }
 
+    public function cacheEvictionPolicy(): string
+    {
+        return $this->cacheEvictionPolicy;
+    }
+
+    public function cacheMaxSize(): int
+    {
+        return $this->cacheMaxSize;
+    }
+
     public static function fromArray(array $config): Utils
     {
         $d = self::default();
@@ -41,11 +55,13 @@ class Utils
             $config['impressionListener'] ?? $d->impressionListener(),
             $config['evaluationCache'] ?? $d->evaluationCache(),
             $config['customCacheHash'] ?? $d->customCacheHash(),
+            $config['cacheEvictionPolicy'] ?? $d->cacheEvictionPolicy(),
+            $config['cacheMaxSize'] ?? $d->cacheMaxSize(),
         );
     }
 
     public static function default(): Utils
     {
-        return new Utils(null, 'none', null);
+        return new Utils(null, 'none', null, 'no-eviction', 2000);
     }
 }

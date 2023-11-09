@@ -7,11 +7,13 @@ class CacheImpl implements Cache
 
     private /*array*/ $data;
     private /*InputHasher*/ $hasher;
+    private /*EvictionPolicy*/ $evictionPolicy;
 
-    public function __construct(InputHasher $hasher)
+    public function __construct(InputHasher $hasher, EvictionPolicy $evictionPolicy)
     {
         $this->data = [];
         $this->hasher = $hasher;
+        $this->evictionPolicy = $evictionPolicy;
     }
 
     public function get(string $key, string $feature, ?array $attributes): ?string
@@ -52,6 +54,7 @@ class CacheImpl implements Cache
     {
         $h = $this->hasher->hashInput($key, $feature, $attributes);
         $this->data[$h] = new Entry($treatment, false);
+        $this->evictionPolicy->postCacheInsertionHook($h, $this->data);
     }
 
     public function setMany(string $key, ?array $attributes, array $results)
@@ -65,6 +68,7 @@ class CacheImpl implements Cache
     {
         $h = $this->hasher->hashInput($key, $feature, $attributes);
         $this->data[$h] = new Entry($treatment, true, $config);
+        $this->evictionPolicy->postCacheInsertionHook($h, $this->data);
     }
 
     public function setManyWithConfig(string $key, ?array $attributes, array $results)

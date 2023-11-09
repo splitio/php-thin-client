@@ -6,6 +6,7 @@ use SplitIO\ThinSdk\Client;
 use SplitIO\ThinSdk\Utils\ImpressionListener;
 use SplitIO\ThinSdk\Utils\EvalCache\CacheImpl;
 use SplitIO\ThinSdk\Utils\EvalCache\KeyAttributeCRC32Hasher;
+use SplitIO\ThinSdk\Utils\EvalCache\NoEviction;
 use SplitIO\ThinSdk\Models\Impression;
 use SplitIO\ThinSdk\Link\Consumer\Manager;
 use SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
@@ -259,7 +260,7 @@ class ClientTest extends TestCase
             ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
             ->willReturn(['on', null, null]);
 
-        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher()));
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction()));
 
         // 2 calls, expecting only one in manager
         $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
@@ -273,7 +274,7 @@ class ClientTest extends TestCase
             ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
             ->willReturn(['on', null, 'some']);
 
-        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher()));
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction()));
 
         // 2 calls to getTreatmentWithConfig, 1 to getTreatment with same input => only one call to link manager
         $this->assertEquals(['treatment' => 'on', 'config' => 'some'], $client->getTreatmentWithConfig('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
@@ -294,7 +295,7 @@ class ClientTest extends TestCase
                 ['f3' => ['na', null, null]],
             );
 
-        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher()));
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction()));
         $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
         $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
         $this->assertEquals(['f1' => 'on', 'f2' => 'off', 'f3' => 'na'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123]));
@@ -314,7 +315,7 @@ class ClientTest extends TestCase
                 ['f3' => ['na', null, 'another']],
             );
 
-        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher()));
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction()));
         $this->assertEquals(
             [
                 'f1' => ['treatment' => 'on', 'config' => 'some'],

@@ -4,13 +4,14 @@ namespace SplitIO\Test\Utils\EvalCache;
 
 use SplitIO\ThinSdk\Utils\EvalCache\CacheImpl;
 use SplitIO\ThinSdk\Utils\EvalCache\KeyAttributeCRC32Hasher;
+use SplitIO\ThinSdk\Utils\EvalCache\NoEviction;
 use PHPUnit\Framework\TestCase;
 
 class CacheImplTest extends TestCase
 {
     public function testWithoutConfig()
     {
-        $c = new CacheImpl(new KeyAttributeCRC32Hasher());
+        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction());
         $c->set('key', 'f1', null, 'on');
         $this->assertEquals('on', $c->get('key', 'f1', null));
         $this->assertEquals(null, $c->get('key2', 'f1', null));
@@ -43,7 +44,7 @@ class CacheImplTest extends TestCase
     public function testWithConfig()
     {
         // setting with config works for both `get`, `getMany`, `getWithConfig`, `getManyWithConfig`
-        $c = new CacheImpl(new KeyAttributeCRC32Hasher());
+        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction());
         $c->setWithConfig('key', 'f1', null, 'on', 'some');
         $this->assertEquals('on', $c->get('key', 'f1', null));
         $this->assertEquals(['treatment' => 'on', 'config' => 'some'], $c->getWithConfig('key', 'f1', null));
