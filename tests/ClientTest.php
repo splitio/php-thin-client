@@ -4,6 +4,9 @@ namespace SplitIO\Test;
 
 use SplitIO\ThinSdk\Client;
 use SplitIO\ThinSdk\Utils\ImpressionListener;
+use SplitIO\ThinSdk\Utils\EvalCache\CacheImpl;
+use SplitIO\ThinSdk\Utils\EvalCache\KeyAttributeCRC32Hasher;
+use SplitIO\ThinSdk\Utils\EvalCache\NoEviction;
 use SplitIO\ThinSdk\Models\Impression;
 use SplitIO\ThinSdk\Link\Consumer\Manager;
 use SplitIO\ThinSdk\Link\Protocol\V1\ImpressionListenerData;
@@ -248,5 +251,87 @@ class ClientTest extends TestCase
 
         $client = new Client($manager, $this->logger, null);
         $this->assertEquals(false, $client->track('someKey', 'someTrafficType', 'someEventType', 1.25, ['a' => 1]));
+    }
+
+    public function testGetTreatmentCacheEnabled()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatment')
+            ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
+            ->willReturn(['on', null, null]);
+
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+
+        // 2 calls, expecting only one in manager
+        $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
+        $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
+    }
+
+    public function testGetTreatmentWithConfigCacheEnabled()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentWithConfig')
+            ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
+            ->willReturn(['on', null, 'some']);
+
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+
+        // 2 calls to getTreatmentWithConfig, 1 to getTreatment with same input => only one call to link manager
+        $this->assertEquals(['treatment' => 'on', 'config' => 'some'], $client->getTreatmentWithConfig('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
+        $this->assertEquals(['treatment' => 'on', 'config' => 'some'], $client->getTreatmentWithConfig('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
+        $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
+    }
+
+    public function testGetTreatmentsCacheEnabled()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->exactly(2))->method('getTreatments')
+            ->withConsecutive(
+                ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
+                ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['f1' => ['on', null, null], 'f2' => ['off', null, null]],
+                ['f3' => ['na', null, null]],
+            );
+
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off', 'f3' => 'na'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off', 'f3' => 'na'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123]));
+    }
+
+    public function testGetTreatmentsWithConfigCacheEnabled()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->exactly(2))->method('getTreatmentsWithConfig')
+            ->withConsecutive(
+                ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
+                ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
+            )
+            ->willReturnOnConsecutiveCalls(
+                ['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]],
+                ['f3' => ['na', null, 'another']],
+            );
+
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(
+            [
+                'f1' => ['treatment' => 'on', 'config' => 'some'],
+                'f2' => ['treatment' => 'off', 'config' => null],
+            ],
+            $client->getTreatmentsWithConfig('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123])
+        );
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
+        $this->assertEquals(
+            [
+                'f1' => ['treatment' => 'on', 'config' => 'some'],
+                'f2' => ['treatment' => 'off', 'config' => null],
+                'f3' => ['treatment' => 'na', 'config' => 'another'],
+            ],
+            $client->getTreatmentsWithConfig('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123])
+        );
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off', 'f3' => 'na'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123]));
     }
 }

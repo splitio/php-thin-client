@@ -2,7 +2,8 @@
 
 namespace SplitIO\ThinSdk;
 
-use SplitIO\ThinSdk\Foundation\Logging\Helpers;
+use SplitIO\ThinSdk\Foundation\Logging;
+use SplitIO\ThinSdk\Utils\EvalCache;
 
 class Factory implements FactoryInterface
 {
@@ -13,7 +14,7 @@ class Factory implements FactoryInterface
     private function __construct(Config\Main $config)
     {
         $this->config = $config;
-        $this->logger = Helpers::getLogger($config->logging());
+        $this->logger = Logging\Helpers::getLogger($config->logging());
         $this->linkManager = Link\Consumer\Initializer::setup(
             Link\Protocol\Version::V1(),
             $config->transfer(),
@@ -40,7 +41,7 @@ class Factory implements FactoryInterface
                     throw new Fallback\FallbackDisabledException($e);
                 }
 
-                $logger = Helpers::getLogger($parsedConfig->logging());
+                $logger = Logging\Helpers::getLogger($parsedConfig->logging());
                 $logger->error(sprintf("error instantiating a factory with supplied config (%s). will return a fallback.", $e->getMessage()));
                 $logger->debug($e);
                 return new Fallback\GenericFallbackFactory($parsedConfig->fallback()->client(), $parsedConfig->fallback()->manager());
@@ -50,7 +51,7 @@ class Factory implements FactoryInterface
             } catch (\Exception $e) {
                 // This branch is virtually unreachable (hence untestable) unless we introduce a bug.
                 // it's basically a safeguard to prevent the customer app from crashing if we do.
-                $logger = Helpers::getLogger(Config\Logging::default());
+                $logger = Logging\Helpers::getLogger(Config\Logging::default());
                 $logger->error(sprintf("error parsing supplied factory config config (%s). will return a fallback.", $e->getMessage()));
                 return new Fallback\GenericFallbackFactory(new Fallback\AlwaysControlClient(), new Fallback\AlwaysEmptyManager());
             }
@@ -59,7 +60,13 @@ class Factory implements FactoryInterface
 
     public function client(): ClientInterface
     {
-        return new Client($this->linkManager, $this->logger, $this->config->utils()->impressionListener());
+        $uc = $this->config->utils();
+        return new Client(
+            $this->linkManager,
+            $this->logger,
+            $uc->impressionListener(),
+            EvalCache\Helpers::getCache($uc->evaluationCache(), $this->logger)
+        );
     }
 
     public function manager(): ManagerInterface
