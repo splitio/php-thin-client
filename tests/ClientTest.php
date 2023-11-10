@@ -4,6 +4,7 @@ namespace SplitIO\Test;
 
 use SplitIO\ThinSdk\Client;
 use SplitIO\ThinSdk\Utils\ImpressionListener;
+use SplitIO\ThinSdk\Utils\Tracer;
 use SplitIO\ThinSdk\Utils\EvalCache\CacheImpl;
 use SplitIO\ThinSdk\Utils\EvalCache\KeyAttributeCRC32Hasher;
 use SplitIO\ThinSdk\Utils\EvalCache\NoEviction;
@@ -31,7 +32,19 @@ class ClientTest extends TestCase
             ->with('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
             ->willReturn(['on', null, null]);
 
-        $client = new Client($manager, $this->logger, null);
+        $tracer = $this->createMock(Tracer::class);
+        $tracer->expects($this->once())
+            ->method('includeArgs')->willReturn(true);
+        $tracer->expects($this->exactly(4))
+            ->method('trace')
+            ->withConsecutive(
+                [Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_START, ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]]],
+                [Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_RPC_START, null],
+                [Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_RPC_END, null],
+                [Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_END, null],
+            );
+
+        $client = new Client($manager, $this->logger, null, null, $tracer);
         $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
     }
 
@@ -78,6 +91,18 @@ class ClientTest extends TestCase
                 'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), null],
             ]);
 
+        $tracer = $this->createMock(Tracer::class);
+        $tracer->expects($this->once())
+            ->method('includeArgs')->willReturn(true);
+        $tracer->expects($this->exactly(4))
+            ->method('trace')
+            ->withConsecutive(
+                [Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_START, ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]]],
+                [Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_RPC_START, null],
+                [Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_RPC_END, null],
+                [Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_END, null],
+            );
+
         $ilMock = $this->createMock(ImpressionListener::class);
         $ilMock->expects($this->exactly(3))
             ->method('accept')
@@ -88,7 +113,7 @@ class ClientTest extends TestCase
             );
 
 
-        $client = new Client($manager, $this->logger, $ilMock);
+        $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
         $this->assertEquals(
             ['someFeature1' => 'on', 'someFeature2' => 'off', 'someFeature3' => 'n/a'],
             $client->getTreatments('someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123])
@@ -107,7 +132,19 @@ class ClientTest extends TestCase
             ->method('accept')
             ->with(new Impression('someKey', 'someBuck', 'someFeature', 'on', 'lab1', 123, 123456), ['someAttr' => 123]);
 
-        $client = new Client($manager, $this->logger, $ilMock);
+        $tracer = $this->createMock(Tracer::class);
+        $tracer->expects($this->once())
+            ->method('includeArgs')->willReturn(true);
+        $tracer->expects($this->exactly(4))
+            ->method('trace')
+            ->withConsecutive(
+                [Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_START, ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]]],
+                [Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_RPC_START, null],
+                [Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_RPC_END, null],
+                [Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_END, null],
+            );
+
+        $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
         $this->assertEquals(
             ['treatment' => 'on', 'config' => '{"a": 1}'],
             $client->getTreatmentWithConfig('someKey', 'someBuck', 'someFeature', ['someAttr' => 123])
@@ -134,8 +171,23 @@ class ClientTest extends TestCase
                 [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
             );
 
+        $tracer = $this->createMock(Tracer::class);
+        $tracer->expects($this->once())
+            ->method('includeArgs')->willReturn(true);
+        $tracer->expects($this->exactly(4))
+            ->method('trace')
+            ->withConsecutive(
+                [
+                    Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
+                    Tracer::EVENT_START,
+                    ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]],
+                ],
+                [Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_RPC_START, null],
+                [Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_RPC_END, null],
+                [Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_END, null],
+            );
 
-        $client = new Client($manager, $this->logger, $ilMock);
+        $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
         $this->assertEquals(
             [
                 'someFeature1' => ['treatment' => 'on', 'config' => null],
