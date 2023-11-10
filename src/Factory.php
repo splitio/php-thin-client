@@ -4,6 +4,7 @@ namespace SplitIO\ThinSdk;
 
 use SplitIO\ThinSdk\Foundation\Logging;
 use SplitIO\ThinSdk\Utils\EvalCache;
+use SplitIO\ThinSdk\Utils\Tracer;
 
 class Factory implements FactoryInterface
 {
@@ -65,7 +66,8 @@ class Factory implements FactoryInterface
             $this->linkManager,
             $this->logger,
             $uc->impressionListener(),
-            EvalCache\Helpers::getCache($uc->evaluationCache(), $this->logger)
+            EvalCache\Helpers::getCache($uc->evaluationCache(), $this->logger),
+            new Tracer($uc->tracer()->hook(), $uc->tracer()->forwardArgs()),
         );
     }
 

@@ -12,9 +12,9 @@ class Tracer
 
     public const EVENT_START = 30;
     public const EVENT_RPC_START = 31;
-    public const EVENT_RPC_END = 31;
-    public const EVENT_END = 32;
-    public const EVENT_EXCEPTION = 33;
+    public const EVENT_RPC_END = 32;
+    public const EVENT_END = 33;
+    public const EVENT_EXCEPTION = 34;
 
     private /*TracerHook*/ $hook;
     private /*bool*/ $includeArgs;
