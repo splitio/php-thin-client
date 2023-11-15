@@ -7,10 +7,11 @@ use PHPUnit\Framework\TestCase;
 class ConnectionFactoryTest extends TestCase
 {
 
-    public function testHappyExchange(): void
+    public function testProperTimeouts(): void
     {
 	$c = new \ReflectionClass(ConnectionFactory::class);
 	$m = $c->getMethod('formatTimeout');
+        $m->setAccessible(true);
 	$this->assertEquals(['sec' => 1, 'usec' => 0], $m->invoke(null, ['sec' =>1, 'usec' => 0]));
 	$this->assertEquals(['sec' => 1, 'usec' => 0], $m->invoke(null, 0));
 	$this->assertEquals(['sec' => 1, 'usec' => 0], $m->invoke(null, 1000));
@@ -23,6 +24,7 @@ class ConnectionFactoryTest extends TestCase
     {
     	$c = new \ReflectionClass(ConnectionFactory::class);
 	$m = $c->getMethod('formatTimeout');
+        $m->setAccessible(true);
         $this->expectExceptionMessage("timeout must either be an int (milliseconds) or an array with keys 'sec' & 'usec'");
         $m->invoke(null, []);
     }
@@ -31,6 +33,7 @@ class ConnectionFactoryTest extends TestCase
     {
     	$c = new \ReflectionClass(ConnectionFactory::class);
 	$m = $c->getMethod('formatTimeout');
+        $m->setAccessible(true);
         $this->expectExceptionMessage("timeout must either be an int (milliseconds) or an array with keys 'sec' & 'usec'");
         $m->invoke(null, 98.7);
     }

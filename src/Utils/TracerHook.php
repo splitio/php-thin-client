@@ -4,5 +4,5 @@ namespace SplitIO\ThinSdk\Utils;
 
 interface TracerHook
 {
-    function on(int $method, int $event, ?array $args);
+    public function on(int $method, int $event, ?array $args);
 }
