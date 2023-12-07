@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\Test\Utils;
+namespace SplitIO\Test\TestUtils;
 
 function debug($str)
 {
@@ -125,7 +125,6 @@ class SocketServerRemoteControl
             }
 
             debug("process didn't finish 1 second after being killed");
-            
         } finally {
             debug("process closed");
         }
