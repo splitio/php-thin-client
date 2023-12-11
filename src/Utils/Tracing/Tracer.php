@@ -1,6 +1,6 @@
 <?php
 
-namespace SplitIO\ThinSdk\Utils;
+namespace SplitIO\ThinSdk\Utils\Tracing;
 
 class Tracer
 {
@@ -30,8 +30,13 @@ class Tracer
         return $this->includeArgs;
     }
 
-    public function trace(int $method, int $event, ?array $args)
+    public function trace(array $event)
     {
-        $this->hook->on($method, $event, $args);
+        $this->hook->on($event);
+    }
+
+    public function makeId(): string
+    {
+        return uniqid();
     }
 }

@@ -2,7 +2,7 @@
 
 namespace SplitIO\ThinSdk\Config;
 
-use SplitIO\ThinSdk\Utils\TracerHook;
+use SplitIO\ThinSdk\Utils\Tracing\TracerHook;
 
 
 class Tracer

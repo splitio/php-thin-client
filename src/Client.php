@@ -3,8 +3,9 @@
 namespace SplitIO\ThinSdk;
 
 use \SplitIO\ThinSdk\Utils\ImpressionListener;
-use \SplitIO\ThinSdk\Utils\Tracer;
-use \SplitIO\ThinSdk\Utils\NoOpTracerHook;
+use \SplitIO\ThinSdk\Utils\Tracing\TracingEventFactory as TEF;
+use \SplitIO\ThinSdk\Utils\Tracing\Tracer;
+use \SplitIO\ThinSdk\Utils\Tracing\NoOpTracerHook;
 use \SplitIO\ThinSdk\Utils\EvalCache\Cache;
 use \SplitIO\ThinSdk\Utils\EvalCache\NoCache;
 use \SplitIO\ThinSdk\Utils\InputValidator\InputValidator;
@@ -37,30 +38,34 @@ class Client implements ClientInterface
     public function getTreatment(string $key, ?string $bucketingKey, string $feature, ?array $attributes = null): string
     {
         try {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_START, $this->tracer->includeArgs() ? func_get_args() : []);
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENT;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             if (($fromCache = $this->cache->get($key, $feature, $attributes)) != null) {
                 return $fromCache;
             }
 
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_RPC_START, null);
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
             list($treatment, $ilData) = $this->lm->getTreatment($key, $bucketingKey, $feature, $attributes);
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_RPC_END, null);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
             $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             $this->cache->set($key, $feature, $attributes, $treatment);
             return $treatment;
         } catch (\Exception $exc) {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error($exc);
             return "control";
         } finally {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT, Tracer::EVENT_END, null);
+            $this->tracer->trace(TEF::forEnd($method, $id));
         }
     }
 
     public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes = null): array
     {
         try {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_START, $this->tracer->includeArgs() ? func_get_args() : []);
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENTS;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             // try to fetch items from cache. return result if all evaluations are cached
             // otherwise, send a Treatments RPC for missing ones and return merged result
             $toReturn = $this->cache->getMany($key, $features, $attributes);
@@ -69,9 +74,9 @@ class Client implements ClientInterface
                 return $toReturn;
             }
 
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_RPC_START, null);
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatments($key, $bucketingKey, $features, $attributes);
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_RPC_END, null);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData) = $result;
                 $toReturn[$feature] = $treatment;
@@ -80,44 +85,48 @@ class Client implements ClientInterface
             $this->cache->setMany($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error($exc);
             return array_reduce($features, function ($r, $k) {
                 $r[$k] = "control";
                 return $r;
             }, []);
         } finally {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS, Tracer::EVENT_END, null);
+            $this->tracer->trace(TEF::forEnd($method, $id));
         }
     }
 
     public function getTreatmentWithConfig(string $key, ?string $bucketingKey, string $feature, ?array $attributes = null): array
     {
         try {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_START, $this->tracer->includeArgs() ? func_get_args() : []);
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENT_WITH_CONFIG;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             if (($fromCache = $this->cache->getWithConfig($key, $feature, $attributes)) != null) {
                 return $fromCache;
             }
 
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_RPC_START, null);
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
             list($treatment, $ilData, $config) = $this->lm->getTreatmentWithConfig($key, $bucketingKey, $feature, $attributes);
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_RPC_END, null);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
             $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             $this->cache->setWithConfig($key, $feature, $attributes, $treatment, $config);
             return ['treatment' => $treatment, 'config' => $config];
         } catch (\Exception $exc) {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error($exc);
-            return "control";
+            return ['treatment' => "control", 'config' => null];
         } finally {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENT_WITH_CONFIG, Tracer::EVENT_END, null);
+            $this->tracer->trace(TEF::forEnd($method, $id));
         }
     }
 
     public function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes = null): array
     {
         try {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_START, $this->tracer->includeArgs() ? func_get_args() : []);
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             $toReturn = $this->cache->getManyWithConfig($key, $features, $attributes);
             $features = self::getMissing($toReturn);
 
@@ -125,9 +134,9 @@ class Client implements ClientInterface
                 return $toReturn;
             }
 
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_RPC_START, null);
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsWithConfig($key, $bucketingKey, $features, $attributes);
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_RPC_END, null);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData, $config) = $result;
                 $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
@@ -136,34 +145,36 @@ class Client implements ClientInterface
             $this->cache->setManyWithConfig($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error($exc);
             return array_reduce($features, function ($r, $k) {
                 $r[$k] = ['treatment' => 'control', 'config' => null];
                 return $r;
             }, []);
         } finally {
-            $this->tracer->trace(Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG, Tracer::EVENT_END, null);
+            $this->tracer->trace(TEF::forEnd($method, $id));
         }
     }
 
     public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         try {
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_START, $this->tracer->includeArgs() ? func_get_args() : []);
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_TRACK;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             $properties = $this->inputValidator->validProperties($properties);
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_RPC_START, null);
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
             $res = $this->lm->track($key, $trafficType, $eventType, $value, $properties);
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_RPC_END, null);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
             return $res;
         } catch (ValidationException $exc) {
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error("error validating event properties: " . $exc->getMessage());
         } catch (\Exception $exc) {
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_EXCEPTION, null);
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
             $this->logger->error($exc);
         } finally {
-            $this->tracer->trace(Tracer::METHOD_TRACK, Tracer::EVENT_END, null);
+            $this->tracer->trace(TEF::forEnd($method, $id));
         }
         return false;
     }

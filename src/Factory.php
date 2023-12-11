@@ -4,7 +4,7 @@ namespace SplitIO\ThinSdk;
 
 use SplitIO\ThinSdk\Foundation\Logging;
 use SplitIO\ThinSdk\Utils\EvalCache;
-use SplitIO\ThinSdk\Utils\Tracer;
+use SplitIO\ThinSdk\Utils\Tracing\Tracer;
 
 class Factory implements FactoryInterface
 {

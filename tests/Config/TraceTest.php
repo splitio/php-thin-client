@@ -3,7 +3,7 @@
 namespace SplitIO\Test\Link\Consumer;
 
 use SplitIO\ThinSdk\Config\Tracer;
-use SplitIO\ThinSdk\Utils\TracerHook;
+use SplitIO\ThinSdk\Utils\Tracing\TracerHook;
 
 use PHPUnit\Framework\TestCase;
 

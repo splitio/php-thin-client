@@ -7,7 +7,7 @@ use SplitIO\ThinSdk\Config\EvaluationCache;
 use SplitIO\ThinSdk\Config\Tracer;
 use SplitIO\ThinSdk\Utils\ImpressionListener;
 use SplitIO\ThinSdk\Utils\EvalCache\InputHasher;
-use SplitIO\ThinSdk\Utils\TracerHook;
+use SplitIO\ThinSdk\Utils\Tracing\TracerHook;
 
 use PHPUnit\Framework\TestCase;
 
