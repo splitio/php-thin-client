@@ -1,3 +1,6 @@
+1.3.1 (TBD):
+- Support finer granularity timeouts and milliseconds granularity
+
 1.3.0 (Nov 10, 2023):
 - Added in-memory evaluation cache for the duration of a request.
 
