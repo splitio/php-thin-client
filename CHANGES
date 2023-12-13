@@ -1,4 +1,4 @@
-1.4.0 (TBD):
+1.4.0 (Dec 13, 2023):
 - Add support for a custom tracer for client methods.
 - Support finer granularity timeouts and milliseconds granularity.
 
