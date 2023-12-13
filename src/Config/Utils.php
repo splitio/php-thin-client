@@ -39,7 +39,7 @@ class Utils
         return new Utils(
             $config['impressionListener'] ?? $d->impressionListener(),
             EvaluationCache::fromArray($config['evaluationCache'] ?? []),
-            Tracer::fromArray($config['__tracer'] ?? []),
+            Tracer::fromArray($config['tracer'] ?? []),
         );
     }
 

@@ -3,24 +3,24 @@
 require_once '../vendor/autoload.php';
 
 use \SplitIO\ThinSdk\Factory;
-use \SplitIO\ThinSdk\Utils\Tracer;
-use \SplitIO\ThinSdk\Utils\TracerHook;
+use \SplitIO\ThinSdk\Utils\Tracing\Tracer;
+use \SplitIO\ThinSdk\Utils\Tracing\TracerHook;
 
 class CustomTracer implements TracerHook
 {
 
     private $events = [];
 
-    public function on(int $method, int $event, ?array $arguments)
+    public function on(array $event)
     {
         // assume we only care about getTreatment() calls...
-        if ($method != Tracer::METHOD_GET_TREATMENT) {
+        if ($event['method'] != Tracer::METHOD_GET_TREATMENT) {
             return;
         }
 
-        switch ($event) {
+        switch ($event['event']) {
             case Tracer::EVENT_START:
-                array_push($this->events, "start (" . json_encode($arguments) . ") -- " . microtime(true));
+                array_push($this->events, "start (" . json_encode($event['arguments']) . ") -- " . microtime(true));
                 break;
             case Tracer::EVENT_RPC_START:
                 array_push($this->events, "about to send rpc -- " . microtime(true));
@@ -54,7 +54,7 @@ $factory = Factory::withConfig([
         'level' => \Psr\Log\LogLevel::INFO,
     ],
     'utils' => [
-        '__tracer' => [
+        'tracer' => [
             'hook' => $ct,
             'forwardArgs' => true,
         ]

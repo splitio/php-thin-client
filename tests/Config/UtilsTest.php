@@ -35,7 +35,7 @@ class UtilsTest extends TestCase
                 'maxSize' => 1234,
                 'customHash' => $ihMock,
             ],
-            '__tracer' => [
+            'tracer' => [
                 'hook' => $tMock,
                 'forwardArgs' => true,
             ],
