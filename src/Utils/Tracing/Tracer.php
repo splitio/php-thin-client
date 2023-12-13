@@ -37,6 +37,6 @@ class Tracer
 
     public function makeId(): string
     {
-        return uniqid();
+        return uniqid("", true);
     }
 }
