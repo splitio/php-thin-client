@@ -32,16 +32,26 @@ class ConnectionFactory
         throw new \Exception("invalid connection type " . $this->sockType);
     }
 
-    private static function formatTimeout(?int $milliseconds)/*: ?int */
+    private static function formatTimeout($timeout)/*: ?int */
     {
-        if ($milliseconds == null) {
-            $milliseconds = 1000;
+	if (is_array($timeout)) {
+            // assume it's a properly formatted unix-like timeout (including 'sec' & 'usec')
+	    if (!array_key_exists('sec', $timeout) || !array_key_exists('usec', $timeout)) {
+                throw new \Exception("timeout must either be an int (milliseconds) or an array with keys 'sec' & 'usec'");
+            }
+            return $timeout;
+	}
+
+        if (!is_null($timeout) && !is_int($timeout)) {
+            throw new \Exception("timeout must either be an int (milliseconds) or an array with keys 'sec' & 'usec'");
         }
 
+        if ($timeout == null || $timeout == 0) {
+            $timeout = 1000;
+        }
         return [
-            'sec' => $milliseconds / 1000,
-            'usec' => 0, // TODO(mredolatti): handle seconds fractions in usec units
+            'sec' => floor($timeout / 1000),
+            'usec' => ($timeout % 1000) * 1000,
         ];
     }
-
 }
