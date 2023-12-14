@@ -11,10 +11,10 @@ class CustomTracer implements TracerHook
 
     private $traces = [];
 
-    // assume we only care about getTreatment() calls...
     public function on(array $event)
     {
 
+        // assume we only care about getTreatment() calls...
         if ($event['method'] != Tracer::METHOD_GET_TREATMENT) {
             return;
         }
