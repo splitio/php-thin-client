@@ -9,37 +9,43 @@ use \SplitIO\ThinSdk\Utils\Tracing\TracerHook;
 class CustomTracer implements TracerHook
 {
 
-    private $events = [];
+    private $traces = [];
 
+    // assume we only care about getTreatment() calls...
     public function on(array $event)
     {
-        // assume we only care about getTreatment() calls...
+
         if ($event['method'] != Tracer::METHOD_GET_TREATMENT) {
             return;
         }
 
+        $trace = $this->traces[$event['id']] ?? [];
+
         switch ($event['event']) {
             case Tracer::EVENT_START:
-                array_push($this->events, "start (" . json_encode($event['arguments']) . ") -- " . microtime(true));
+                $trace['start'] = microtime(true);
+                $trace['args'] = $event['arguments'];
                 break;
             case Tracer::EVENT_RPC_START:
-                array_push($this->events, "about to send rpc -- " . microtime(true));
+                $trace['rpc_start'] = microtime(true);
                 break;
             case Tracer::EVENT_RPC_END:
-                array_push($this->events, "rpc completed -- " . microtime(true));
+                $trace['rpc_end'] = microtime(true);
                 break;
             case Tracer::EVENT_EXCEPTION:
-                array_push($this->events, "exception occured -- " . microtime(true));
+                $trace['exception'] = $event['exception'];
                 break;
             case Tracer::EVENT_END:
-                array_push($this->events, "end -- " . microtime(true));
+                $trace['end'] = microtime(true);
                 break;
         }
+
+        $this->traces[$event['id']] =  $trace;
     }
 
-    public function getEvents(): array
+    public function getTraces(): array
     {
-        return $this->events;
+        return $this->traces;
     }
 }
 
@@ -65,4 +71,4 @@ $factory = Factory::withConfig([
 $manager = $factory->manager();
 $client = $factory->client();
 echo $client->getTreatment("key", null, $manager->splitNames()[0], ['age' => 22]);
-print_r($ct->getEvents());
+var_dump($ct->getTraces());
