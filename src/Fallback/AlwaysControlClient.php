@@ -32,6 +32,16 @@ class AlwaysControlClient implements ClientInterface
         }, []);
     }
 
+    public  function getTreatmentsByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
+    {
+        return array();
+    }
+
+    public  function getTreatmentsWithConfigByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
+    {
+        return array();
+    }
+
     public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         return false;
