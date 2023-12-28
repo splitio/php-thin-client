@@ -114,8 +114,12 @@ class V1Manager implements Manager
     }
 
 
-    public function getTreatmentsWithConfigByFlagSet(string $key, ?string $bucketingKey, string $flagSet, ?array $attributes): array
-    {
+    public function getTreatmentsWithConfigByFlagSet(
+        string $key,
+        ?string $bucketingKey,
+        string $flagSet,
+        ?array $attributes
+    ): array {
         $response = Protocol\V1\TreatmentsByFlagSetResponse::fromRaw(
             $this->rpcWithReconnect(RPC::forTreatmentsWithConfigByFlagSet($key, $bucketingKey, $flagSet, $attributes))
         );
@@ -123,7 +127,7 @@ class V1Manager implements Manager
 
         $results = [];
 
-        foreach($response->getEvaluationResults() as $feature=>$evalResult) {
+        foreach ($response->getEvaluationResults() as $feature => $evalResult) {
             $results[$feature] = $evalResult == null
             ? ["control", null, null]
             : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata(), $evalResult->getConfig()];

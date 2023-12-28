@@ -20,6 +20,4 @@ class TreatmentsByFlagSetArgs extends Enum
     private const BUCKETING_KEY = 1;
     private const FLAG_SET = 2;
     private const ATTRIBUTES = 3;
-
 }
-

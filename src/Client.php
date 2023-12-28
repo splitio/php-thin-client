@@ -156,8 +156,12 @@ class Client implements ClientInterface
         }
     }
 
-    public function getTreatmentsByFlagSet(string $key, ?string $bucketingKey, string $flagSet, ?array $attributes): array
-    {
+    public function getTreatmentsByFlagSet(
+        string $key,
+        ?string $bucketingKey,
+        string $flagSet,
+        ?array $attributes
+    ): array {
         try {
             // @TODO implement cache for this method
 
@@ -175,8 +179,12 @@ class Client implements ClientInterface
         }
     }
 
-    public function getTreatmentsWithConfigByFlagSet(string $key, ?string $bucketingKey, string $flagSet, ?array $attributes = null): array
-    {
+    public function getTreatmentsWithConfigByFlagSet(
+        string $key,
+        ?string $bucketingKey,
+        string $flagSet,
+        ?array $attributes = null
+    ): array {
         try {
             // @TODO implement cache for this method
 
