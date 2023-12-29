@@ -67,12 +67,20 @@ class RPC implements Serializable
         return self::_forTreatments($key, $bucketingKey, $features, $attributes, true);
     }
 
-    public static function forTreatmentsByFlagSet(string $key, ?string $bucketingKey, string $flagSet, ?array $attributes): RPC
+    public static function forTreatmentsByFlagSet(
+        string $key,
+        ?string $bucketingKey,
+        string $flagSet,
+        ?array $attributes): RPC
     {
         return self::_forTreatmentsByFlagSet($key, $bucketingKey, $flagSet, $attributes, false);
     }
 
-    public static function forTreatmentsWithConfigByFlagSet(string $key, ?string $bucketingKey, string $flagSet, ?array $attributes): RPC
+    public static function forTreatmentsWithConfigByFlagSet(
+        string $key,
+        ?string $bucketingKey,
+        string $flagSet,
+        ?array $attributes): RPC
     {
         return self::_forTreatmentsByFlagSet($key, $bucketingKey, $flagSet, $attributes, true);
     }
@@ -149,7 +157,12 @@ class RPC implements Serializable
         );
     }
 
-    public static function _forTreatmentsByFlagSet(string $k, ?string $bk, string $f, ?array $a, bool $includeConfig): RPC
+    public static function _forTreatmentsByFlagSet(
+        string $k,
+        ?string $bk,
+        string $f,
+        ?array $a,
+        bool $includeConfig): RPC
     {
         return new RPC(
             Version::V1(),

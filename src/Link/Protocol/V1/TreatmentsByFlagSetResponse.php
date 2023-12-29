@@ -29,6 +29,7 @@ class TreatmentsByFlagSetResponse extends Response
     public static function fromRaw(/*mixed*/$raw)/*: mixed*/
     {
         Enforce::isArray($raw);
+        $status = Result::from(Enforce::isInt($raw['s']));
 
         $results = [];
         foreach (Enforce::isArray($raw['p']['r']) as $feature => $evalResult) {
@@ -36,7 +37,7 @@ class TreatmentsByFlagSetResponse extends Response
         };
 
         return new TreatmentsByFlagSetResponse(
-            Result::from(Enforce::isInt($raw['s'])),
+            $status,
             Enforce::isArray($results)
         );
     }

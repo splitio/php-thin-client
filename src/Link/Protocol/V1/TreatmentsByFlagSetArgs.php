@@ -10,7 +10,7 @@ enum TreatmentsByFlagSetArgs: int
     case FLAGSET       = 2;
     case ATTRIBUTES    = 3;
 }
- */
+*/
 
 use MyCLabs\Enum\Enum;
 
