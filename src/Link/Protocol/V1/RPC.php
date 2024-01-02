@@ -85,6 +85,24 @@ class RPC implements Serializable
         return self::_forTreatmentsByFlagSet($key, $bucketingKey, $flagSet, $attributes, true);
     }
 
+    public static function forTreatmentsByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes): RPC
+    {
+        return self::_forTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes, false);
+    }
+
+    public static function forTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes): RPC
+    {
+        return self::_forTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes, true);
+    }
+
     public static function forTrack(
         string $key,
         string $trafficType,
@@ -172,6 +190,25 @@ class RPC implements Serializable
                 TreatmentsByFlagSetArgs::BUCKETING_KEY()->getValue() => $bk,
                 TreatmentsByFlagSetArgs::FLAG_SET()->getValue()      => $f,
                 TreatmentsByFlagSetArgs::ATTRIBUTES()->getValue()    => ($a != null && count($a) > 0) ? $a : null,
+            ]
+        );
+    }
+
+    public static function _forTreatmentsByFlagSets(
+        string $k,
+        ?string $bk,
+        array $f,
+        ?array $a,
+        bool $includeConfig): RPC
+    {
+        return new RPC(
+            Version::V1(),
+            $includeConfig ? OpCode::TreatmentsWithConfigByFlagSets() : OpCode::TreatmentsByFlagSets(),
+            [
+                TreatmentsByFlagSetsArgs::KEY()->getValue()           => $k,
+                TreatmentsByFlagSetsArgs::BUCKETING_KEY()->getValue() => $bk,
+                TreatmentsByFlagSetsArgs::FLAG_SETS()->getValue()      => $f,
+                TreatmentsByFlagSetsArgs::ATTRIBUTES()->getValue()    => ($a != null && count($a) > 0) ? $a : null,
             ]
         );
     }

@@ -202,6 +202,52 @@ class Client implements ClientInterface
         }
     }
 
+    public function getTreatmentsByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes
+    ): array {
+        try {
+            // @TODO implement cache for this method
+
+            $results = $this->lm->getTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes);
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData) = $result;
+                $toReturn[$feature] = $treatment;
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            $this->cache->setMany($key, $attributes, $toReturn);
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return array();
+        }
+    }
+
+    public function getTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes = null
+    ): array {
+        try {
+            // @TODO implement cache for this method
+
+            $results = $this->lm->getTreatmentsWithConfigByFlagSets($key, $bucketingKey, $flagSets, $attributes);
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData, $config) = $result;
+                $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            $this->cache->setMany($key, $attributes, $toReturn);
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->logger->error($exc);
+            return array();
+        }
+    }
+
     public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         try {

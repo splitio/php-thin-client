@@ -117,7 +117,6 @@ class V1Manager implements Manager
         return $results;
     }
 
-
     public function getTreatmentsWithConfigByFlagSet(
         string $key,
         ?string $bucketingKey,
@@ -140,6 +139,49 @@ class V1Manager implements Manager
         return $results;
     }
 
+    public function getTreatmentsByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes): array
+    {
+        $response = Protocol\V1\TreatmentsByFlagSetResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes))
+        );
+        $response->ensureSuccess();
+
+        $results = [];
+
+        foreach ($response->getEvaluationResults() as $feature => $evalResult) {
+            $results[$feature] = $evalResult == null
+            ? ["control", null, null]
+            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata(), $evalResult->getConfig()];
+        }
+
+        return $results;
+    }
+
+    public function getTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes
+    ): array {
+        $response = Protocol\V1\TreatmentsByFlagSetResponse::fromRaw(
+            $this->rpcWithReconnect(RPC::forTreatmentsWithConfigByFlagSets($key, $bucketingKey, $flagSets, $attributes))
+        );
+        $response->ensureSuccess();
+
+        $results = [];
+
+        foreach ($response->getEvaluationResults() as $feature => $evalResult) {
+            $results[$feature] = $evalResult == null
+            ? ["control", null, null]
+            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata(), $evalResult->getConfig()];
+        }
+
+        return $results;
+    }
 
     public function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool
     {

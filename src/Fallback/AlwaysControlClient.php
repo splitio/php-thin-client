@@ -16,7 +16,7 @@ class AlwaysControlClient implements ClientInterface
         return ['treatment' => 'control', 'config' => null];
     }
 
-    public  function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    public function getTreatments(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
     {
         return array_reduce($features, function ($carry, $item) {
             $carry[$item] = "control";
@@ -24,7 +24,7 @@ class AlwaysControlClient implements ClientInterface
         }, []);
     }
 
-    public  function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
+    public function getTreatmentsWithConfig(string $key, ?string $bucketingKey, array $features, ?array $attributes): array
     {
         return array_reduce($features, function ($carry, $item) {
             $carry[$item] = ['treatment' => 'control', 'config' => null];
@@ -32,12 +32,22 @@ class AlwaysControlClient implements ClientInterface
         }, []);
     }
 
-    public  function getTreatmentsByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
+    public function getTreatmentsByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
     {
         return array();
     }
 
-    public  function getTreatmentsWithConfigByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
+    public function getTreatmentsWithConfigByFlagSet(string $key, $bucketingKey, string $flagSet, $attributes): array
+    {
+        return array();
+    }
+
+    public function getTreatmentsByFlagSets(string $key, $bucketingKey, array $flagSets, $attributes): array
+    {
+        return array();
+    }
+
+    public function getTreatmentsWithConfigByFlagSets(string $key, $bucketingKey, array $flagSets, $attributes): array
     {
         return array();
     }
