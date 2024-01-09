@@ -9,16 +9,23 @@ class Utils
 {
     private /*?ImpressionListener*/ $listener;
     private /*?string*/ $evaluationCache;
+    private /*?TracerHook*/ $tracer;
 
-    private function __construct(?ImpressionListener $listener, EvaluationCache $cache)
+    private function __construct(?ImpressionListener $listener, EvaluationCache $cache, Tracer $tracer)
     {
         $this->listener = $listener;
         $this->evaluationCache = $cache;
+        $this->tracer = $tracer;
     }
 
     public function impressionListener(): ?ImpressionListener
     {
         return $this->listener;
+    }
+
+    public function tracer(): Tracer
+    {
+        return $this->tracer;
     }
 
     public function evaluationCache(): ?EvaluationCache
@@ -32,11 +39,12 @@ class Utils
         return new Utils(
             $config['impressionListener'] ?? $d->impressionListener(),
             EvaluationCache::fromArray($config['evaluationCache'] ?? []),
+            Tracer::fromArray($config['tracer'] ?? []),
         );
     }
 
     public static function default(): Utils
     {
-        return new Utils(null, EvaluationCache::default());
+        return new Utils(null, EvaluationCache::default(), Tracer::default());
     }
 }
