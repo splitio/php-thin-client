@@ -14,17 +14,24 @@ class SplitResponseTest extends TestCase
 
     public function testParsingHappyPaths(): void
     {
-
         $raw = ['s' => 0x01, 'p' => [
             'n' => 'someName',
             't' => 'someTrafficType',
             'k' => true,
             's' => ['on', 'off'],
             'c' => 123,
+            'd' => 'on',
             'f' => ['on' => 'some'],
+            'e' => ['s1', 's2'],
         ]];
         $this->assertEquals(
-            new SplitResponse(Result::Ok(), new SplitViewResult("someName", "someTrafficType", true, ['on', 'off'], 123, ['on' => 'some'])),
+            new SplitResponse(Result::Ok(), new SplitViewResult("someName", "someTrafficType", true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some'])),
+            SplitResponse::fromRaw($raw)
+        );
+
+        $raw['p']['e'] = [];
+        $this->assertEquals(
+            new SplitResponse(Result::Ok(), new SplitViewResult("someName", "someTrafficType", true, ['on', 'off'], 123, 'on', [],['on' => 'some'])),
             SplitResponse::fromRaw($raw)
         );
 

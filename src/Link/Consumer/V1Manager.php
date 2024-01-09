@@ -251,7 +251,9 @@ class V1Manager implements Manager
             $res->getKilled(),
             $res->getTreatments(),
             $res->getChangeNumber(),
-            $res->getConfigs()
+            $res->getDefaultTreatment(),
+            $res->getSets(),
+            $res->getConfigs(),
         );
     }
 };

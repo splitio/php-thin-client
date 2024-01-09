@@ -433,6 +433,8 @@ class V1ManagerTest extends TestCase
                     's' => ['on', 'off'],
                     'c' => 123,
                     'f' => ['on' => 'some'],
+                    'd' => 'on',
+                    'e' => ['s1', 's2']
                 ]],
             );
 
@@ -441,7 +443,7 @@ class V1ManagerTest extends TestCase
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $this->assertEquals(
-            new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
+            new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some']),
             $v1Manager->split('someName')
         );
     }
@@ -480,6 +482,8 @@ class V1ManagerTest extends TestCase
                         's' => ['on', 'off'],
                         'c' => 123,
                         'f' => ['on' => 'some'],
+                        'd' => 'on',
+                        'e' => ['s1', 's2'],
                     ],
                     [
                         'n' => 'someName2',
@@ -488,6 +492,8 @@ class V1ManagerTest extends TestCase
                         's' => ['on', 'off'],
                         'c' => 124,
                         'f' => null,
+                        'd' => 'off',
+                        'e' => null,
                     ],
                 ]]],
             );
@@ -498,8 +504,8 @@ class V1ManagerTest extends TestCase
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $this->assertEquals(
             [
-                new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
-                new SplitView('someName2', 'someTrafficType', false, ['on', 'off'], 124, null),
+                new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some']),
+                new SplitView('someName2', 'someTrafficType', false, ['on', 'off'], 124, 'off', [], null),
             ],
             $v1Manager->splits()
         );
