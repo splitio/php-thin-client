@@ -264,6 +264,81 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testGetTreatmentsByFlagSetNoImpListener() {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->willReturn([
+                'someFeature1' => ['on', null, null],
+                'someFeature2' => ['off', null, null],
+                'someFeature3' => ['n/a', null, null],
+            ]);
+
+        $client = new Client($manager, $this->logger, null);
+        $this->assertEquals(
+            ['someFeature1' => 'on', 'someFeature2' => 'off', 'someFeature3' => 'n/a'],
+            $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+        );
+    }
+
+    public function testGetTreatmentsByFlagSetWithImpListener()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->willReturn([
+                'someFeature1' => ['on', new ImpressionListenerData('lab1', 123, 123456), null],
+                'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
+                'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), null],
+            ]);
+
+        $ilMock = $this->createMock(ImpressionListener::class);
+        $ilMock->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+            );
+
+        $client = new Client($manager, $this->logger, $ilMock);
+        $this->assertEquals(
+            ['someFeature1' => 'on', 'someFeature2' => 'off', 'someFeature3' => 'n/a'],
+            $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+        );
+    }
+
+    public function testGetTreatmentsWithConfigByFlagSetAndListener()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentsWithConfigByFlagSet')
+            ->with('someKey', 'someBuck', 'someFlagSet', ['someAttr' => 123])
+            ->willReturn([
+                'someFeature1' => ['on', new ImpressionListenerData('lab1', 123, 123456), null],
+                'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
+                'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), '{"a": 2}'],
+            ]);
+
+        $ilMock = $this->createMock(ImpressionListener::class);
+        $ilMock->expects($this->exactly(3))
+            ->method('accept')
+            ->withConsecutive(
+                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+            );
+
+        $client = new Client($manager, $this->logger, $ilMock);
+        $this->assertEquals(
+            [
+                'someFeature1' => ['treatment' => 'on', 'config' => null],
+                'someFeature2' => ['treatment' => 'off', 'config' => null],
+                'someFeature3' => ['treatment' => 'n/a', 'config' => '{"a": 2}']
+            ],
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', 'someFlagSet', ['someAttr' => 123])
+        );
+    }
+
     public function testGetTreatmentExceptionReturnsControl()
     {
         $manager = $this->createMock(Manager::class);
@@ -286,6 +361,20 @@ class ClientTest extends TestCase
         $this->assertEquals(
             ['someFeature1' => 'control', 'someFeature2' => 'control', 'someFeature3' => 'control'],
             $client->getTreatments('someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123])
+        );
+    }
+
+    public function testGetTreatmentsByFlagSetExceptionReturnsControl()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->will($this->throwException(new \Exception("abc")));
+
+        $client = new Client($manager, $this->logger, null);
+        $this->assertEquals(
+            [],
+            $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
         );
     }
 

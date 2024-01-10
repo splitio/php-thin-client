@@ -27,6 +27,13 @@ class AlwaysControlClientTest extends TestCase
         $this->assertEquals([], $c->getTreatments("key", null, [], null));
     }
 
+    public function testGetTreatmentsByFlagSets()
+    {
+        $c = new AlwaysControlClient();
+        $this->assertEquals([], $c->getTreatmentsByFlagSet("key", null, "someFlagSet", null));
+        $this->assertEquals([], $c->getTreatmentsWithConfigByFlagSet("key", null, "someFlagSet", null));
+    }
+
     public function testTrack()
     {
         $c = new AlwaysControlClient();

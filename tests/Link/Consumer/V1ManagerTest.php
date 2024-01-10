@@ -30,30 +30,34 @@ class V1ManagerTest extends TestCase
     public function testHappyExchangeNoImpListener(): void
     {
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->exactly(5))
+        $connMock->expects($this->exactly(7))
             ->method('sendMessage')
             ->withConsecutive(
                 ['serializedRegister'],
                 ['serializedTreatment'],
                 ['serializedTreatments'],
                 ['serializedTreatmentWithConfig'],
-                ['serializedTreatmentsWithConfig']
+                ['serializedTreatmentsWithConfig'],
+                ['serializedTreatmentsByFlagSet'],
+                ['serializedTreatmentsWithConfigByFlagSet']
             );
-        $connMock->expects($this->exactly(5))
+        $connMock->expects($this->exactly(7))
             ->method('readMessage')
             ->willReturnOnConsecutiveCalls(
                 'serializedRegisterResp',
                 'serializedTreatmentResp',
                 'serializedTreatmentsResp',
-                'serilaizedTreatmentWithCnfigResp',
-                'serializedTreatmentsWithConfig'
+                'serilaizedTreatmentWithConfigResp',
+                'serializedTreatmentsWithConfigResp',
+                'serializedTreatmentsByFlagSetResp',
+                'serializedTreatmentsWithConfigByFlagSetResp'
             );
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->exactly(5))
+        $serializerMock->expects($this->exactly(7))
             ->method('serialize')
             ->withConsecutive(
                 [RPC::forRegister('someId', new RegisterFlags(false))],
@@ -61,24 +65,38 @@ class V1ManagerTest extends TestCase
                 [RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
                 [RPC::forTreatmentWithConfig("k", "b", "f", ["a" => 1])],
                 [RPC::forTreatmentsWithConfig("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
+                [RPC::forTreatmentsByFlagSet("k", "b", "s", ["a" => 1])],
+                [RPC::forTreatmentsWithConfigByFlagSet("k", "b", "s", ["a" => 1])],
             )
             ->willReturnOnConsecutiveCalls(
                 'serializedRegister',
                 'serializedTreatment',
                 'serializedTreatments',
                 'serializedTreatmentWithConfig',
-                'serializedTreatmentsWithConfig'
+                'serializedTreatmentsWithConfig',
+                'serializedTreatmentsByFlagSet',
+                'serializedTreatmentsWithConfigByFlagSet'
             );
 
-        $serializerMock->expects($this->exactly(5))
+        $serializerMock->expects($this->exactly(7))
             ->method('deserialize')
-            ->withConsecutive(['serializedRegisterResp'], ['serializedTreatmentResp'], ['serializedTreatmentsResp'])
+            ->withConsecutive(
+                ['serializedRegisterResp'],
+                ['serializedTreatmentResp'],
+                ['serializedTreatmentsResp'],
+                ['serilaizedTreatmentWithConfigResp'],
+                ['serializedTreatmentsWithConfigResp'],
+                ['serializedTreatmentsByFlagSetResp'],
+                ['serializedTreatmentsWithConfigByFlagSetResp']
+            )
             ->willReturnOnConsecutiveCalls(
                 ['s' => 0x01],
                 ['s' => 0x01, 'p' => ['t' => 'on']],
                 ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]],
                 ['s' => 0x01, 'p' => ['t' => 'on', 'c' => '{"a": 1}']],
-                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off', 'c' => '{"a": 2}']]]]
+                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]]
             );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
@@ -94,6 +112,14 @@ class V1ManagerTest extends TestCase
         $this->assertEquals(
             ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
             $v1Manager->getTreatmentsWithConfig('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            $v1Manager->getTreatmentsByFlagSet('k', 'b', "s", ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            $v1Manager->getTreatmentsWithConfigByFlagSet('k', 'b', "s", ['a' => 1])
         );
     }
 
