@@ -9,6 +9,8 @@ class Tracer
     public const METHOD_GET_TREATMENT_WITH_CONFIG = 12;
     public const METHOD_GET_TREATMENTS_WITH_CONFIG = 13;
     public const METHOD_TRACK = 14;
+    public const METHOD_GET_TREATMENTS_BY_FLAG_SET = 15;
+    public const METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SET = 16;
 
     public const EVENT_START = 30;
     public const EVENT_RPC_START = 31;
