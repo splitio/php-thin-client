@@ -166,7 +166,12 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            // @TODO implement cache for this method
+            $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, false);
+            $features = self::getMissing($toReturn);
+
+            if (count($features) == 0) {
+                return $toReturn;
+            }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsByFlagSet($key, $bucketingKey, $flagSet, $attributes);
@@ -197,7 +202,12 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            // @TODO implement cache for this method
+            $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, true);
+            $features = self::getMissing($toReturn);
+
+            if (count($features) == 0) {
+                return $toReturn;
+            }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsWithConfigByFlagSet($key, $bucketingKey, $flagSet, $attributes);

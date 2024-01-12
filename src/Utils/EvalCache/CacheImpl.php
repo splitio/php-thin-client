@@ -8,6 +8,7 @@ class CacheImpl implements Cache
     private /*array*/ $data;
     private /*InputHasher*/ $hasher;
     private /*EvictionPolicy*/ $evictionPolicy;
+    private /*array*/ $flagSets;
 
     public function __construct(InputHasher $hasher, EvictionPolicy $evictionPolicy)
     {
@@ -50,6 +51,17 @@ class CacheImpl implements Cache
         return $result;
     }
 
+    public function getByFlagSets(array $flagSets, string $key, ?array $attributes, bool $withConfig): array
+    {
+        sort($flagSets);
+        $h = implode(",", $flagSets);
+        $features = $this->flagSets[$h] ?? null;
+        if (is_null($features)) {
+            return [];
+        }
+        return $withConfig ? $this->getManyWithConfig($key, $$features, $attributes) : $this->getMany($key, $$features, $attributes);
+    }
+
     public function set(string $key, string $feature, ?array $attributes, string $treatment)
     {
         $h = $this->hasher->hashInput($key, $feature, $attributes);
@@ -76,6 +88,17 @@ class CacheImpl implements Cache
         foreach ($results as $feature => $result) {
             $this->setWithConfig($key, $feature, $attributes, $result['treatment'], $result['config']);
         }
+    }
+
+    public function setFeaturesForFlagSets(string $key, array $flagSets, ?array $attributes, array $results, bool $withConfig)
+    {
+        $h = implode(",", $flagSets);
+        $this->flagSets[$h] = array_keys($results);
+        if ($withConfig) {
+            $this->setManyWithConfig($key, $attributes, $results);
+            return;
+        }
+        $this->setMany($key, $attributes, $results);
     }
 
     private function _get(string $key, string $feature, ?array $attributes): ?Entry
