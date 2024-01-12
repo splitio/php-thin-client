@@ -17,6 +17,13 @@ interface Manager
         string $flagSet,
         ?array $attributes
     ): array;
+    function getTreatmentsByFlagSets(string $key, ?string $bucketingKey, array $flagSets, ?array $attributes): array;
+    function getTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSet,
+        ?array $attributes
+    ): array;
     function track(string $key, string $trafficType, string $eventType, ?float $value, ?array $properties): bool;
     function splitNames(): array;
     function split(string $splitName): ?SplitView;

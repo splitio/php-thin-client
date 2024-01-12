@@ -28,6 +28,8 @@ class OpCode extends Enum
     private const TreatmentsWithConfig = 0x14;
     private const TreatmentsByFlagSet = 0x15;
     private const TreatmentsWithConfigByFlagSet = 0x16;
+    private const TreatmentsByFlagSets = 0x17;
+    private const TreatmentsWithConfigByFlagSets = 0x18;
 
     private const Track = 0x80;
 

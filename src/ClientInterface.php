@@ -15,5 +15,12 @@ interface ClientInterface
         string $flagSet,
         ?array $attributes
     ): array;
+    function getTreatmentsByFlagSets(string $key, ?string $bucketingKey, array $flagSets, ?array $attributes): array;
+    function getTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes
+    ): array;
     function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool;
 }

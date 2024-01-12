@@ -218,6 +218,68 @@ class Client implements ClientInterface
         }
     }
 
+    public function getTreatmentsByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes
+    ): array {
+        try {
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SETS;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            // @TODO implement cache for this method
+
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
+            $results = $this->lm->getTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData) = $result;
+                $toReturn[$feature] = $treatment;
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            $this->cache->setMany($key, $attributes, $toReturn);
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
+            $this->logger->error($exc);
+            return array();
+        } finally {
+            $this->tracer->trace(TEF::forEnd($method, $id));
+        }
+    }
+
+    public function getTreatmentsWithConfigByFlagSets(
+        string $key,
+        ?string $bucketingKey,
+        array $flagSets,
+        ?array $attributes = null
+    ): array {
+        try {
+            $id = $this->tracer->makeId();
+            $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SETS;
+            $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            // @TODO implement cache for this method
+
+            $this->tracer->trace(TEF::forRPCStart($method, $id));
+            $results = $this->lm->getTreatmentsWithConfigByFlagSets($key, $bucketingKey, $flagSets, $attributes);
+            $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            foreach ($results as $feature => $result) {
+                list($treatment, $ilData, $config) = $result;
+                $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
+                $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
+            }
+            $this->cache->setMany($key, $attributes, $toReturn);
+            return $toReturn;
+        } catch (\Exception $exc) {
+            $this->tracer->trace(TEF::forException($method, $id, $exc));
+            $this->logger->error($exc);
+            return array();
+        } finally {
+            $this->tracer->trace(TEF::forEnd($method, $id));
+        }
+    }
+
     public function track(string $key, string $trafficType, string $eventType, ?float $value = null, ?array $properties = null): bool
     {
         try {
