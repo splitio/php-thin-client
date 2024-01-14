@@ -167,9 +167,7 @@ class Client implements ClientInterface
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, false);
-            $features = self::getMissing($toReturn);
-
-            if (count($features) == 0) {
+            if (!is_null($toReturn)) {
                 return $toReturn;
             }
 
@@ -203,9 +201,7 @@ class Client implements ClientInterface
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, true);
-            $features = self::getMissing($toReturn);
-
-            if (count($features) == 0) {
+            if (!is_null($toReturn)) {
                 return $toReturn;
             }
 
@@ -238,7 +234,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            // @TODO implement cache for this method
+            $toReturn = $this->cache->getByFlagSets($flagSets, $key, $attributes, false);
+            if (!is_null($toReturn)) {
+                return $toReturn;
+            }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes);
@@ -269,7 +268,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            // @TODO implement cache for this method
+            $toReturn = $this->cache->getByFlagSets($flagSets, $key, $attributes, true);
+            if (!is_null($toReturn)) {
+                return $toReturn;
+            }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsWithConfigByFlagSets($key, $bucketingKey, $flagSets, $attributes);

@@ -32,6 +32,11 @@ class NoCache implements Cache
         return $res;
     }
 
+    public function getByFlagSets(array $flagSets, string $key, ?array $attributes, bool $withConfig): ?array
+    {
+        return null;
+    }
+
     public function set(string $key, string $feature, ?array $attributes, string $treatment)
     {
     }
@@ -45,6 +50,10 @@ class NoCache implements Cache
     }
 
     public function setManyWithConfig(string $key, ?array $attributes, array $results)
+    {
+    }
+
+    public function setFeaturesForFlagSets(string $key, array $flagSets, ?array $attributes, array $results, bool $withConfig)
     {
     }
 }

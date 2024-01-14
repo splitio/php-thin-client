@@ -51,15 +51,15 @@ class CacheImpl implements Cache
         return $result;
     }
 
-    public function getByFlagSets(array $flagSets, string $key, ?array $attributes, bool $withConfig): array
+    public function getByFlagSets(array $flagSets, string $key, ?array $attributes, bool $withConfig): ?array
     {
         sort($flagSets);
         $h = implode(",", $flagSets);
         $features = $this->flagSets[$h] ?? null;
         if (is_null($features)) {
-            return [];
+            return null;
         }
-        return $withConfig ? $this->getManyWithConfig($key, $$features, $attributes) : $this->getMany($key, $$features, $attributes);
+        return $withConfig ? $this->getManyWithConfig($key, $features, $attributes) : $this->getMany($key, $features, $attributes);
     }
 
     public function set(string $key, string $feature, ?array $attributes, string $treatment)
