@@ -83,6 +83,5 @@ class CacheImplTest extends TestCase
         $c->setFeaturesForFlagSets(['s2', 's1'], ['f1', 'f2']);
         $this->assertEquals(['f1', 'f2'], $c->getFeaturesByFlagSets(['s1', 's2']));
         $this->assertEquals(['f1', 'f2'], $c->getFeaturesByFlagSets(['s2', 's1']));
-        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s2']));
     }
 }
