@@ -129,7 +129,6 @@ class Client implements ClientInterface
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
             $toReturn = $this->cache->getManyWithConfig($key, $features, $attributes);
             $features = self::getMissing($toReturn);
-
             if (count($features) == 0) {
                 return $toReturn;
             }
@@ -166,9 +165,13 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, false);
-            if (!is_null($toReturn)) {
-                return $toReturn;
+            $featuresFromSet = $this->cache->getFeaturesByFlagSets([$flagSet]);
+            if (!is_null($featuresFromSet)) {
+                $toReturn = $this->cache->getMany($key, $featuresFromSet, $attributes);
+                $features = self::getMissing($toReturn);
+                if (count($features) == 0) {
+                    return $toReturn;
+                }
             }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
@@ -179,6 +182,7 @@ class Client implements ClientInterface
                 $toReturn[$feature] = $treatment;
                 $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             }
+            $this->cache->setFeaturesForFlagSets([$flagSet], array_keys($results));
             $this->cache->setMany($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
@@ -200,9 +204,13 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $toReturn = $this->cache->getByFlagSets([$flagSet], $key, $attributes, true);
-            if (!is_null($toReturn)) {
-                return $toReturn;
+            $featuresFromSet = $this->cache->getFeaturesByFlagSets([$flagSet]);
+            if (!is_null($featuresFromSet)) {
+                $toReturn = $this->cache->getManyWithConfig($key, $featuresFromSet, $attributes);
+                $features = self::getMissing($toReturn);
+                if (count($features) == 0) {
+                    return $toReturn;
+                }
             }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
@@ -213,7 +221,8 @@ class Client implements ClientInterface
                 $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
                 $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             }
-            $this->cache->setMany($key, $attributes, $toReturn);
+            $this->cache->setFeaturesForFlagSets([$flagSet], array_keys($results));
+            $this->cache->setManyWithConfig($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
             $this->tracer->trace(TEF::forException($method, $id, $exc));
@@ -234,9 +243,13 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $toReturn = $this->cache->getByFlagSets($flagSets, $key, $attributes, false);
-            if (!is_null($toReturn)) {
-                return $toReturn;
+            $featuresFromSets = $this->cache->getFeaturesByFlagSets($flagSets);
+            if (!is_null($featuresFromSets)) {
+                $toReturn = $this->cache->getMany($key, $featuresFromSets, $attributes);
+                $features = self::getMissing($toReturn);
+                if (count($features) == 0) {
+                    return $toReturn;
+                }
             }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
@@ -247,6 +260,7 @@ class Client implements ClientInterface
                 $toReturn[$feature] = $treatment;
                 $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             }
+            $this->cache->setFeaturesForFlagSets($flagSets, array_keys($results));
             $this->cache->setMany($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
@@ -268,9 +282,13 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $toReturn = $this->cache->getByFlagSets($flagSets, $key, $attributes, true);
-            if (!is_null($toReturn)) {
-                return $toReturn;
+            $featuresFromSet = $this->cache->getFeaturesByFlagSets($flagSets);
+            if (!is_null($featuresFromSet)) {
+                $toReturn = $this->cache->getManyWithConfig($key, $featuresFromSet, $attributes);
+                $features = self::getMissing($toReturn);
+                if (count($features) == 0) {
+                    return $toReturn;
+                }
             }
 
             $this->tracer->trace(TEF::forRPCStart($method, $id));
@@ -281,7 +299,8 @@ class Client implements ClientInterface
                 $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
                 $this->handleListener($key, $bucketingKey, $feature, $attributes, $treatment, $ilData);
             }
-            $this->cache->setMany($key, $attributes, $toReturn);
+            $this->cache->setFeaturesForFlagSets($flagSets, array_keys($results));
+            $this->cache->setManyWithConfig($key, $attributes, $toReturn);
             return $toReturn;
         } catch (\Exception $exc) {
             $this->tracer->trace(TEF::forException($method, $id, $exc));

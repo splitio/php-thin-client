@@ -51,17 +51,12 @@ class CacheImpl implements Cache
         return $result;
     }
 
-    public function getByFlagSets(array $flagSets, string $key, ?array $attributes, bool $withConfig): ?array
+    public function getFeaturesByFlagSets(array $flagSets): ?array
     {
-        sort($flagSets); // Order flagSets to store
+        sort($flagSets); // Order flagSets to grab from store
         $h = implode(",", $flagSets); // Concatenating each flagSet with a comma e.g: flagSet1,flagSet2,flagSet3
-        $features = $this->flagSets[$h] ?? null;
-        if (is_null($features)) { // if null then no flagSets were stored
-            return null;
-        }
-        return $withConfig ? $this->getManyWithConfig($key, $features, $attributes) : $this->getMany($key, $features, $attributes);
+        return $this->flagSets[$h] ?? null;
     }
-
     public function set(string $key, string $feature, ?array $attributes, string $treatment)
     {
         $h = $this->hasher->hashInput($key, $feature, $attributes);
@@ -90,16 +85,11 @@ class CacheImpl implements Cache
         }
     }
 
-    public function setFeaturesForFlagSets(string $key, array $flagSets, ?array $attributes, array $results, bool $withConfig)
+    public function setFeaturesForFlagSets(array $flagSets, array $featuresFlags)
     {
+        sort($flagSets); // Order flagSets to store
         $h = implode(",", $flagSets); // Concatenating each flagSet with a comma e.g: flagSet1,flagSet2,flagSet3
-        $this->flagSets[$h] = array_keys($results); // Get all the features to store the list of features associated to the flagSets
-        // Store the evaluation results for each feature
-        if ($withConfig) {
-            $this->setManyWithConfig($key, $attributes, $results);
-            return;
-        }
-        $this->setMany($key, $attributes, $results);
+        $this->flagSets[$h] = $featuresFlags;
     }
 
     private function _get(string $key, string $feature, ?array $attributes): ?Entry

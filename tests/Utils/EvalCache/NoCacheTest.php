@@ -40,22 +40,9 @@ class NoCacheTest extends TestCase
         $this->assertEquals(null, $c->getWithConfig('key', 'f2', null));
         $this->assertEquals(['f1' => null, 'f2' => null], $c->getManyWithConfig('key', ['f1', 'f2'], null));
 
-        $c->setFeaturesForFlagSets('key', ['f1', 'f2'], null, [
-            'f1' => 'on',
-            'f2' => 'off',
-        ], false);
-        $this->assertEquals(null, $c->get('key', 'f1', null));
-        $this->assertEquals(null, $c->get('key', 'f2', ['a' => 1]));
-        $this->assertEquals(null, $c->getByFlagSets(['f1', 'f2'], 'key', null, false));
-        $this->assertEquals(null, $c->getByFlagSets(['f1', 'f2'], 'key', null, true));
-
-        $c->setFeaturesForFlagSets('key', ['f1', 'f2'], null, [
-            'f1' => ['treatment' => 'on', 'config' => 'some'],
-            'f2' => ['treatment' => 'off', 'config' => null],
-        ], true);
-        $this->assertEquals(null, $c->get('key', 'f1', null));
-        $this->assertEquals(null, $c->get('key', 'f2', ['a' => 1]));
-        $this->assertEquals(null, $c->getByFlagSets(['f1', 'f2'], 'key', null, false));
-        $this->assertEquals(null, $c->getByFlagSets(['f1', 'f2'], 'key', null, true));
+        $c->setFeaturesForFlagSets(['s1', 's2'], ['f1', 'f2']);
+        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s1', 's2']));
+        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s2', 's1']));
+        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s1']));
     }
 }
