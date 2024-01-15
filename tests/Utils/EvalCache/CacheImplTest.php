@@ -76,4 +76,12 @@ class CacheImplTest extends TestCase
         // nothing matches for [] attributes
         $this->assertEquals(['f1' => null, 'f2' => null, 'f3' => null], $c->getManyWithConfig('key', ['f1', 'f2', 'f3'], []));
     }
+
+    public function testByFlagSets()
+    {
+        $c = new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0));
+        $c->setFeaturesForFlagSets(['s2', 's1'], ['f1', 'f2']);
+        $this->assertEquals(['f1', 'f2'], $c->getFeaturesByFlagSets(['s1', 's2']));
+        $this->assertEquals(['f1', 'f2'], $c->getFeaturesByFlagSets(['s2', 's1']));
+    }
 }
