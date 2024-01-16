@@ -676,4 +676,202 @@ class ClientTest extends TestCase
         );
         $this->assertEquals(['f1' => 'on', 'f2' => 'off', 'f3' => 'na'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2', 'f3'], ['someAttr' => 123]));
     }
+
+    public function testCacheForGetTreatmentsByFlagSet()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'set_1', ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, null], 'f2' => ['off', null, null]]);
+
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set_1'])
+            ->willReturnOnConsecutiveCalls(null, ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('getMany')
+            ->with('someKey', ['f1', 'f2'], ['someAttr' => 123])
+            ->willReturn(['f1' => 'on', 'f2' => 'off']);
+        $cache->expects($this->once())
+            ->method('setFeaturesForFlagSets')
+            ->with(['set_1'], ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('setMany')
+            ->with('someKey', ['someAttr' => 123], ['f1' => 'on', 'f2' => 'off']);
+
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'SET_1', ['someAttr' => 123]));
+
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'set_1', ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, null], 'f2' => ['off', null, null]]);
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'SET_1', ['someAttr' => 123]));
+    }
+
+    public function testCacheForGetTreatmentsWithConfigByFlagSet()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSet')
+            ->with('someKey', 'someBuck', 'set_1', ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]]);
+
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set_1'])
+            ->willReturnOnConsecutiveCalls(null, ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('setFeaturesForFlagSets')
+            ->with(['set_1'], ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('getManyWithConfig')
+            ->with('someKey', ['f1', 'f2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]]);
+        $cache->expects($this->once())
+            ->method('setManyWithConfig')
+            ->with(
+                'someKey',
+                ['someAttr' => 123],
+                [
+                    'f1' =>['treatment' => 'on', 'config' => 'some'],
+                    'f2' => ['treatment' => 'off', 'config' => null]
+                ]);
+
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123])
+        );
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123])
+        );
+
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSet')
+            ->with('someKey', 'someBuck', 'set_1', ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]]);
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123])
+        );
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', ' set_1  ', ['someAttr' => 123])
+        );
+    }
+
+    public function testCacheForGetTreatmentsByFlagSets()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsByFlagSets')
+            ->with('someKey', 'someBuck', ['set_1', 'set_2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, null], 'f2' => ['off', null, null]]);
+
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set_1', 'set_2'])
+            ->willReturnOnConsecutiveCalls(null, ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('getMany')
+            ->with('someKey', ['f1', 'f2'], ['someAttr' => 123])
+            ->willReturn(['f1' => 'on', 'f2' => 'off']);
+        $cache->expects($this->once())
+            ->method('setFeaturesForFlagSets')
+            ->with(['set_1', 'set_2'], ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('setMany')
+            ->with('someKey', ['someAttr' => 123], ['f1' => 'on', 'f2' => 'off']);
+
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '@FAIL'], ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSets('someKey', 'someBuck', ['SET_1', 'set_2', '   '], ['someAttr' => 123]));
+
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsByFlagSets')
+            ->with('someKey', 'someBuck', ['set_1', 'set_2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, null], 'f2' => ['off', null, null]]);
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '@FAIL'], ['someAttr' => 123]));
+        $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatmentsByFlagSets('someKey', 'someBuck', ['SET_1', 'set_2', '   '], ['someAttr' => 123]));
+    }
+
+    public function testCacheForGetTreatmentsWithConfigByFlagSets()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSets')
+            ->with('someKey', 'someBuck', ['set_1', 'set_2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]]);
+
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set_1', 'set_2'])
+            ->willReturnOnConsecutiveCalls(null, ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('setFeaturesForFlagSets')
+            ->with(['set_1', 'set_2'], ['f1', 'f2']);
+        $cache->expects($this->once())
+            ->method('getManyWithConfig')
+            ->with('someKey', ['f1', 'f2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]]);
+        $cache->expects($this->once())
+            ->method('setManyWithConfig')
+            ->with(
+                'someKey',
+                ['someAttr' => 123],
+                [
+                    'f1' =>['treatment' => 'on', 'config' => 'some'],
+                    'f2' => ['treatment' => 'off', 'config' => null]
+                ]);
+
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '@FAIL'], ['someAttr' => 123])
+        );
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '    '], ['someAttr' => 123])
+        );
+
+        $manager = $this->createMock(Manager::class);
+        $manager->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSets')
+            ->with('someKey', 'someBuck', ['set_1', 'set_2'], ['someAttr' => 123])
+            ->willReturn(['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]]);
+        $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '@FAIL'], ['someAttr' => 123])
+        );
+        $this->assertEquals(
+            ['f1' => ['treatment' => 'on', 'config' => 'some'], 'f2' => ['treatment' => 'off', 'config' => null]],
+            $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', [' set_1   ', 'set_2', '    '], ['someAttr' => 123])
+        );
+    }
+
+    public function testInputValidatorForFlagSets()
+    {
+        $manager = $this->createMock(Manager::class);
+        $client = new Client($manager, $this->logger, null, null);
+        $this->assertEquals([], $client->getTreatmentsByFlagSet('someKey', 'someBuck', '@FAIL', ['someAttr' => 123]));
+        $this->assertEquals([], $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', '@FAIL', ['someAttr' => 123]));
+        $this->assertEquals([], $client->getTreatmentsByFlagSets('someKey', 'someBuck', ['@FAIL', '    '], ['someAttr' => 123]));
+        $this->assertEquals([], $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', ['@FAIL', '    '], ['someAttr' => 123]));
+    }
 }
