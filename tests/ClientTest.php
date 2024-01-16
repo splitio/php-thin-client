@@ -267,7 +267,7 @@ class ClientTest extends TestCase
     public function testGetTreatmentsByFlagSetNoImpListener() {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsByFlagSet')
-            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->with('someKey', 'someBuck', 'someset', ['someAttr' => 123])
             ->willReturn([
                 'someFeature1' => ['on', null, null],
                 'someFeature2' => ['off', null, null],
@@ -285,7 +285,7 @@ class ClientTest extends TestCase
     {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsByFlagSet')
-            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->with('someKey', 'someBuck', 'someset', ['someAttr' => 123])
             ->willReturn([
                 'someFeature1' => ['on', new ImpressionListenerData('lab1', 123, 123456), null],
                 'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
@@ -312,7 +312,7 @@ class ClientTest extends TestCase
     {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsWithConfigByFlagSet')
-            ->with('someKey', 'someBuck', 'someFlagSet', ['someAttr' => 123])
+            ->with('someKey', 'someBuck', 'someset', ['someAttr' => 123])
             ->willReturn([
                 'someFeature1' => ['on', new ImpressionListenerData('lab1', 123, 123456), null],
                 'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
@@ -335,7 +335,7 @@ class ClientTest extends TestCase
                 'someFeature2' => ['treatment' => 'off', 'config' => null],
                 'someFeature3' => ['treatment' => 'n/a', 'config' => '{"a": 2}']
             ],
-            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', 'someFlagSet', ['someAttr' => 123])
+            $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
         );
     }
 
@@ -443,7 +443,7 @@ class ClientTest extends TestCase
     {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsByFlagSet')
-            ->with('someKey', 'someBuck', 'someSet', ['someAttr' => 123])
+            ->with('someKey', 'someBuck', 'someset', ['someAttr' => 123])
             ->will($this->throwException(new \Exception("abc")));
 
         $client = new Client($manager, $this->logger, null);

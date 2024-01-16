@@ -165,6 +165,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            $flagSet = $this->inputValidator->sanitize($flagSet, 'getTreatmentsByFlagSet');
+            if (is_null($flagSet)) {
+                return array();
+            }
             $featuresFromSet = $this->cache->getFeaturesByFlagSets([$flagSet]);
             if (!is_null($featuresFromSet)) {
                 $toReturn = $this->cache->getMany($key, $featuresFromSet, $attributes);
@@ -204,6 +208,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SET;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            $flagSet = $this->inputValidator->sanitize($flagSet, 'getTreatmentsWithConfigByFlagSet');
+            if (is_null($flagSet)) {
+                return array();
+            }
             $featuresFromSet = $this->cache->getFeaturesByFlagSets([$flagSet]);
             if (!is_null($featuresFromSet)) {
                 $toReturn = $this->cache->getManyWithConfig($key, $featuresFromSet, $attributes);
@@ -243,6 +251,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            $flagSet = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsByFlagSets');
+            if (is_null($flagSet)) {
+                return array();
+            }
             $featuresFromSets = $this->cache->getFeaturesByFlagSets($flagSets);
             if (!is_null($featuresFromSets)) {
                 $toReturn = $this->cache->getMany($key, $featuresFromSets, $attributes);
@@ -282,6 +294,10 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
+            $flagSet = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsWithConfigByFlagSets');
+            if (is_null($flagSet)) {
+                return array();
+            }
             $featuresFromSet = $this->cache->getFeaturesByFlagSets($flagSets);
             if (!is_null($featuresFromSet)) {
                 $toReturn = $this->cache->getManyWithConfig($key, $featuresFromSet, $attributes);
