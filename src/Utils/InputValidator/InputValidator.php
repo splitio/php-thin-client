@@ -46,16 +46,16 @@ class InputValidator
     {
         $trimmed = trim($flagSet);
         if ($trimmed !== $flagSet) {
-            $this->logger->warning($method . ': Flag Set name ' . $flagSet . ' has extra whitespace, trimming');
+            $this->logger->warning($method . ': Flag Set name "' . $flagSet . '" has extra whitespace, trimming.');
         }
         $toLowercase = strtolower($trimmed);
         if ($toLowercase !== $trimmed) {
-            $this->logger->warning($method . ': Flag Set name ' . $trimmed . ' should be all lowercase - converting string to lowercase');
+            $this->logger->warning($method . ': Flag Set name "' . $flagSet . '" should be all lowercase - converting string to lowercase.');
         }
         if (!preg_match(REG_EXP_FLAG_SET, $toLowercase)) {
-            $this->logger->warning($method . ': you passed ' . $toLowercase . ', Flag Set must adhere to the regular expressions {' .
-                REG_EXP_FLAG_SET . ' This means a Flag Set must start with a letter or number, be in lowercase, alphanumeric and ' .
-                'have a max length of 50 characters. ' . $toLowercase . ' was discarded.');
+            $this->logger->warning($method . ': you passed "' . $flagSet . '", Flag Set must adhere to the regular expressions {' .
+                REG_EXP_FLAG_SET . '} This means a Flag Set must start with a letter or number, be in lowercase, alphanumeric and ' .
+                'have a max length of 50 characters. "' . $flagSet . '" was discarded.');
             return null;
         }
 
