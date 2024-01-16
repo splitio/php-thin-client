@@ -76,6 +76,7 @@ class InputValidator
                 array_push($sanitized, $sanitizedFlagSet);
             }
         }
+        $sanitized = array_values(array_unique($sanitized));
 
         if (count($sanitized) == 0) {
             $this->logger->error($method . ': FlagSets must be a non-empty list.');

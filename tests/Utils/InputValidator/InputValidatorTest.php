@@ -26,5 +26,6 @@ class InputValidatorTest extends TestCase
         $this->assertEquals(['a', 'test'], $inputValidator->sanitizeMany(['   A  ', '@FAIL', 'TEST'], 'test'));
         $this->assertEquals(null, $inputValidator->sanitizeMany([], 'test'));
         $this->assertEquals(null, $inputValidator->sanitizeMany(['some' => 'some'], 'test'));
+        $this->assertEquals(['a', 'test'], $inputValidator->sanitizeMany(['   A  ', 'A', 'test'], 'test'));
     }
 }
