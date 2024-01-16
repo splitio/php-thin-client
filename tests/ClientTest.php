@@ -414,6 +414,52 @@ class ClientTest extends TestCase
         );
     }
 
+    public function testGetTreatmentsByFlagSetWithEmptyManagerResult()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager
+            ->expects($this->once())
+            ->method('getTreatmentsByFlagSet')
+            ->with('someKey', 'someBuck', 'set', ['someAttr' => 123])
+            ->willReturn([]);
+        $manager
+            ->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSet')
+            ->with('someKey', 'someBuck', 'set', ['someAttr' => 123])
+            ->willReturn([]);
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set'])
+            ->willReturn(null);
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals([], $client->getTreatmentsByFlagSet('someKey', 'someBuck', 'set', ['someAttr' => 123]));
+        $this->assertEquals([], $client->getTreatmentsWithConfigByFlagSet('someKey', 'someBuck', 'set', ['someAttr' => 123]));
+    }
+
+    public function testGetTreatmentsByFlagSetsWithEmptyManagerResult()
+    {
+        $manager = $this->createMock(Manager::class);
+        $manager
+            ->expects($this->once())
+            ->method('getTreatmentsByFlagSets')
+            ->with('someKey', 'someBuck', ['set'], ['someAttr' => 123])
+            ->willReturn([]);
+        $manager
+            ->expects($this->once())
+            ->method('getTreatmentsWithConfigByFlagSets')
+            ->with('someKey', 'someBuck', ['set'], ['someAttr' => 123])
+            ->willReturn([]);
+        $cache = $this->createMock(CacheImpl::class);
+        $cache->expects($this->exactly(2))
+            ->method('getFeaturesByFlagSets')
+            ->with(['set'])
+            ->willReturn(null);
+        $client = new Client($manager, $this->logger, null, $cache);
+        $this->assertEquals([], $client->getTreatmentsByFlagSets('someKey', 'someBuck', ['set'], ['someAttr' => 123]));
+        $this->assertEquals([], $client->getTreatmentsWithConfigByFlagSets('someKey', 'someBuck', ['set'], ['someAttr' => 123]));
+    }
+
     public function testGetTreatmentExceptionReturnsControl()
     {
         $manager = $this->createMock(Manager::class);

@@ -181,6 +181,7 @@ class Client implements ClientInterface
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsByFlagSet($key, $bucketingKey, $flagSet, $attributes);
             $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            $toReturn = array();
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData) = $result;
                 $toReturn[$feature] = $treatment;
@@ -224,6 +225,7 @@ class Client implements ClientInterface
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsWithConfigByFlagSet($key, $bucketingKey, $flagSet, $attributes);
             $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            $toReturn = array();
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData, $config) = $result;
                 $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
@@ -251,8 +253,8 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $flagSet = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsByFlagSets');
-            if (is_null($flagSet)) {
+            $flagSets = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsByFlagSets');
+            if (is_null($flagSets)) {
                 return array();
             }
             $featuresFromSets = $this->cache->getFeaturesByFlagSets($flagSets);
@@ -267,6 +269,7 @@ class Client implements ClientInterface
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsByFlagSets($key, $bucketingKey, $flagSets, $attributes);
             $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            $toReturn = array();
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData) = $result;
                 $toReturn[$feature] = $treatment;
@@ -294,8 +297,8 @@ class Client implements ClientInterface
             $id = $this->tracer->makeId();
             $method = Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG_BY_FLAG_SETS;
             $this->tracer->trace(TEF::forStart($method, $id, $this->tracer->includeArgs() ? func_get_args() : []));
-            $flagSet = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsWithConfigByFlagSets');
-            if (is_null($flagSet)) {
+            $flagSets = $this->inputValidator->sanitizeMany($flagSets, 'getTreatmentsWithConfigByFlagSets');
+            if (is_null($flagSets)) {
                 return array();
             }
             $featuresFromSet = $this->cache->getFeaturesByFlagSets($flagSets);
@@ -310,6 +313,7 @@ class Client implements ClientInterface
             $this->tracer->trace(TEF::forRPCStart($method, $id));
             $results = $this->lm->getTreatmentsWithConfigByFlagSets($key, $bucketingKey, $flagSets, $attributes);
             $this->tracer->trace(TEF::forRPCEnd($method, $id));
+            $toReturn = array();
             foreach ($results as $feature => $result) {
                 list($treatment, $ilData, $config) = $result;
                 $toReturn[$feature] = ['treatment' => $treatment, 'config' => $config];
