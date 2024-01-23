@@ -7,7 +7,7 @@ enum TreatmentsByFlagSetsArgs: int
 {
     case KEY            = 0;
     case BUCKETING_KEY  = 1;
-    case FLAGSETS       = 2;
+    case FLAG_SETS      = 2;
     case ATTRIBUTES     = 3;
 }
 */
