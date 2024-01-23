@@ -45,10 +45,10 @@ class ManagerTest extends TestCase
         $lm = $this->createMock(LinkManager::class);
         $lm->expects($this->once())->method('split')
             ->with('s1')
-            ->willReturn(new SplitView('s1', 'tt', true, ['on', 'off'], 123, ['on' => 'frula']));
+            ->willReturn(new SplitView('s1', 'tt', true, ['on', 'off'], 123, 'on', ['set_1', 'set_2'], ['on' => 'frula']));
 
         $manager = new Manager($lm, $this->logger);
-        $this->assertEquals(new SplitView('s1', 'tt', true, ['on', 'off'], 123, ['on' => 'frula']), $manager->split('s1'));
+        $this->assertEquals(new SplitView('s1', 'tt', true, ['on', 'off'], 123, 'on', ['set_1', 'set_2'], ['on' => 'frula']), $manager->split('s1'));
     }
 
     public function testSplitReturnNullOnException()
@@ -68,14 +68,14 @@ class ManagerTest extends TestCase
         $lm->expects($this->once())->method('splits')
             ->with()
             ->willReturn([
-                new SplitView('s1', 'tt', true, ['on', 'off'], 123, ['on' => 'frula']),
-                new SplitView('s2', 'tt', false, ['on', 'off'], 124, ['on' => 'frula']),
+                new SplitView('s1', 'tt', true, ['on', 'off'], 123, 'on', ['set_1', 'set_2'], ['on' => 'frula']),
+                new SplitView('s2', 'tt', false, ['on', 'off'], 124, 'off', [], ['on' => 'frula']),
             ]);
 
         $manager = new Manager($lm, $this->logger);
         $this->assertEquals([
-            new SplitView('s1', 'tt', true, ['on', 'off'], 123, ['on' => 'frula']),
-            new SplitView('s2', 'tt', false, ['on', 'off'], 124, ['on' => 'frula']),
+            new SplitView('s1', 'tt', true, ['on', 'off'], 123, 'on', ['set_1', 'set_2'], ['on' => 'frula']),
+            new SplitView('s2', 'tt', false, ['on', 'off'], 124, 'off',[], ['on' => 'frula']),
         ], $manager->splits());
     }
 

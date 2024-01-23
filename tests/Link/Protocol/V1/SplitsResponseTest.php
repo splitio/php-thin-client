@@ -18,14 +18,14 @@ class SplitsResponseTest extends TestCase
         $raw = [
             's' => 0x01,
             'p' => ['s' => [
-                ['n' => 's1', 't' => 'someTrafficType', 'k' => true, 's' => ['on', 'off'], 'c' => 123, 'f' => ['on' => 'some']],
-                ['n' => 's2', 't' => 'someTrafficType', 'k' => false, 's' => ['on', 'off'], 'c' => 124, 'f' => null],
+                ['n' => 's1', 't' => 'someTrafficType', 'k' => true, 's' => ['on', 'off'], 'c' => 123, 'd' => 'on', 'f' => ['on' => 'some'], 'e' => ['s1', 's2']],
+                ['n' => 's2', 't' => 'someTrafficType', 'k' => false, 's' => ['on', 'off'], 'c' => 124, 'd' => 'on', 'f' => null, 'e' => null],
             ]]
         ];
         $this->assertEquals(
             new SplitsResponse(Result::Ok(), [
-                new SplitViewResult("s1", "someTrafficType", true, ['on', 'off'], 123, ['on' => 'some']),
-                new SplitViewResult("s2", "someTrafficType", false, ['on', 'off'], 124, null),
+                new SplitViewResult("s1", "someTrafficType", true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some']),
+                new SplitViewResult("s2", "someTrafficType", false, ['on', 'off'], 124, 'on', [], null),
             ]),
             SplitsResponse::fromRaw($raw)
         );

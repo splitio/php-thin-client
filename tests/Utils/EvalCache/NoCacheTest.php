@@ -39,5 +39,9 @@ class NoCacheTest extends TestCase
         $this->assertEquals(null, $c->getWithConfig('key', 'f1', null));
         $this->assertEquals(null, $c->getWithConfig('key', 'f2', null));
         $this->assertEquals(['f1' => null, 'f2' => null], $c->getManyWithConfig('key', ['f1', 'f2'], null));
+
+        $c->setFeaturesForFlagSets(['s1', 's2'], ['f1', 'f2']);
+        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s1', 's2']));
+        $this->assertEquals(null, $c->getFeaturesByFlagSets(['s2', 's1']));
     }
 }

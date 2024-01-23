@@ -8,6 +8,7 @@ class CacheImpl implements Cache
     private /*array*/ $data;
     private /*InputHasher*/ $hasher;
     private /*EvictionPolicy*/ $evictionPolicy;
+    private /*array*/ $flagSets;
 
     public function __construct(InputHasher $hasher, EvictionPolicy $evictionPolicy)
     {
@@ -50,6 +51,12 @@ class CacheImpl implements Cache
         return $result;
     }
 
+    public function getFeaturesByFlagSets(array $flagSets): ?array
+    {
+        sort($flagSets); // Order flagSets to grab from store
+        $h = implode(",", $flagSets); // Concatenating each flagSet with a comma e.g: flagSet1,flagSet2,flagSet3
+        return $this->flagSets[$h] ?? null;
+    }
     public function set(string $key, string $feature, ?array $attributes, string $treatment)
     {
         $h = $this->hasher->hashInput($key, $feature, $attributes);
@@ -76,6 +83,13 @@ class CacheImpl implements Cache
         foreach ($results as $feature => $result) {
             $this->setWithConfig($key, $feature, $attributes, $result['treatment'], $result['config']);
         }
+    }
+
+    public function setFeaturesForFlagSets(array $flagSets, array $featuresFlags)
+    {
+        sort($flagSets); // Order flagSets to store
+        $h = implode(",", $flagSets); // Concatenating each flagSet with a comma e.g: flagSet1,flagSet2,flagSet3
+        $this->flagSets[$h] = $featuresFlags;
     }
 
     private function _get(string $key, string $feature, ?array $attributes): ?Entry
