@@ -23,7 +23,7 @@ class SplitViewResult
         int $changeNumber,
         string $defaultTreatment,
         array $sets,
-        ?array $configs,
+        ?array $configs
         )
     {
         $this->name = $name;

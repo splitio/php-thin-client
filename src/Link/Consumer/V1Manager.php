@@ -253,7 +253,7 @@ class V1Manager implements Manager
             $res->getChangeNumber(),
             $res->getDefaultTreatment(),
             $res->getSets(),
-            $res->getConfigs(),
+            $res->getConfigs()
         );
     }
 };
