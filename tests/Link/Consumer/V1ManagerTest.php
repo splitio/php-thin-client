@@ -30,30 +30,38 @@ class V1ManagerTest extends TestCase
     public function testHappyExchangeNoImpListener(): void
     {
         $connMock = $this->createMock(RawConnection::class);
-        $connMock->expects($this->exactly(5))
+        $connMock->expects($this->exactly(9))
             ->method('sendMessage')
             ->withConsecutive(
                 ['serializedRegister'],
                 ['serializedTreatment'],
                 ['serializedTreatments'],
                 ['serializedTreatmentWithConfig'],
-                ['serializedTreatmentsWithConfig']
+                ['serializedTreatmentsWithConfig'],
+                ['serializedTreatmentsByFlagSet'],
+                ['serializedTreatmentsWithConfigByFlagSet'],
+                ['serializedTreatmentsByFlagSets'],
+                ['serializedTreatmentsWithConfigByFlagSets']
             );
-        $connMock->expects($this->exactly(5))
+        $connMock->expects($this->exactly(9))
             ->method('readMessage')
             ->willReturnOnConsecutiveCalls(
                 'serializedRegisterResp',
                 'serializedTreatmentResp',
                 'serializedTreatmentsResp',
-                'serilaizedTreatmentWithCnfigResp',
-                'serializedTreatmentsWithConfig'
+                'serilaizedTreatmentWithConfigResp',
+                'serializedTreatmentsWithConfigResp',
+                'serializedTreatmentsByFlagSetResp',
+                'serializedTreatmentsWithConfigByFlagSetResp',
+                'serializedTreatmentsByFlagSetsResp',
+                'serializedTreatmentsWithConfigByFlagSetsResp',
             );
 
         $connFactoryMock = $this->createMock(ConnectionFactory::class);
         $connFactoryMock->expects($this->once())->method('create')->willReturn($connMock);
 
         $serializerMock = $this->createMock(Serializer::class);
-        $serializerMock->expects($this->exactly(5))
+        $serializerMock->expects($this->exactly(9))
             ->method('serialize')
             ->withConsecutive(
                 [RPC::forRegister('someId', new RegisterFlags(false))],
@@ -61,24 +69,46 @@ class V1ManagerTest extends TestCase
                 [RPC::forTreatments("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
                 [RPC::forTreatmentWithConfig("k", "b", "f", ["a" => 1])],
                 [RPC::forTreatmentsWithConfig("k", "b", ["f1", "f2", "f3"], ["a" => 1])],
+                [RPC::forTreatmentsByFlagSet("k", "b", "s", ["a" => 1])],
+                [RPC::forTreatmentsWithConfigByFlagSet("k", "b", "s", ["a" => 1])],
+                [RPC::forTreatmentsByFlagSets("k", "b", ["s1", "s2"], ["a" => 1])],
+                [RPC::forTreatmentsWithConfigByFlagSets("k", "b", ["s1", "s2"], ["a" => 1])],
             )
             ->willReturnOnConsecutiveCalls(
                 'serializedRegister',
                 'serializedTreatment',
                 'serializedTreatments',
                 'serializedTreatmentWithConfig',
-                'serializedTreatmentsWithConfig'
+                'serializedTreatmentsWithConfig',
+                'serializedTreatmentsByFlagSet',
+                'serializedTreatmentsWithConfigByFlagSet',
+                'serializedTreatmentsByFlagSets',
+                'serializedTreatmentsWithConfigByFlagSets'
             );
 
-        $serializerMock->expects($this->exactly(5))
+        $serializerMock->expects($this->exactly(9))
             ->method('deserialize')
-            ->withConsecutive(['serializedRegisterResp'], ['serializedTreatmentResp'], ['serializedTreatmentsResp'])
+            ->withConsecutive(
+                ['serializedRegisterResp'],
+                ['serializedTreatmentResp'],
+                ['serializedTreatmentsResp'],
+                ['serilaizedTreatmentWithConfigResp'],
+                ['serializedTreatmentsWithConfigResp'],
+                ['serializedTreatmentsByFlagSetResp'],
+                ['serializedTreatmentsWithConfigByFlagSetResp'],
+                ['serializedTreatmentsByFlagSetsResp'],
+                ['serializedTreatmentsWithConfigByFlagSetsResp']
+            )
             ->willReturnOnConsecutiveCalls(
                 ['s' => 0x01],
                 ['s' => 0x01, 'p' => ['t' => 'on']],
                 ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off']]]],
                 ['s' => 0x01, 'p' => ['t' => 'on', 'c' => '{"a": 1}']],
-                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off', 'c' => '{"a": 2}']]]]
+                ['s' => 0x01, 'p' => ['r' => [['t' => 'on'], ['t' => 'on'], ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]],
+                ['s' => 0x01, 'p' => ['r' => ['f1' => ['t' => 'on'], 'f2' => ['t' => 'on'], 'f3' => ['t' => 'off', 'c' => '{"a": 2}']]]]
             );
 
         $serializerFactoryMock = $this->createMock(SerializerFactory::class);
@@ -94,6 +124,22 @@ class V1ManagerTest extends TestCase
         $this->assertEquals(
             ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
             $v1Manager->getTreatmentsWithConfig('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
+            $v1Manager->getTreatmentsByFlagSet('k', 'b', "s", ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            $v1Manager->getTreatmentsWithConfigByFlagSet('k', 'b', "s", ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
+            $v1Manager->getTreatmentsByFlagSets('k', 'b', ["s1", "s2"], ['a' => 1])
+        );
+        $this->assertEquals(
+            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            $v1Manager->getTreatmentsWithConfigByFlagSets('k', 'b', ["s1", "s2"], ['a' => 1])
         );
     }
 
@@ -387,6 +433,8 @@ class V1ManagerTest extends TestCase
                     's' => ['on', 'off'],
                     'c' => 123,
                     'f' => ['on' => 'some'],
+                    'd' => 'on',
+                    'e' => ['s1', 's2']
                 ]],
             );
 
@@ -395,7 +443,7 @@ class V1ManagerTest extends TestCase
 
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $this->assertEquals(
-            new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
+            new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some']),
             $v1Manager->split('someName')
         );
     }
@@ -434,6 +482,8 @@ class V1ManagerTest extends TestCase
                         's' => ['on', 'off'],
                         'c' => 123,
                         'f' => ['on' => 'some'],
+                        'd' => 'on',
+                        'e' => ['s1', 's2'],
                     ],
                     [
                         'n' => 'someName2',
@@ -442,6 +492,8 @@ class V1ManagerTest extends TestCase
                         's' => ['on', 'off'],
                         'c' => 124,
                         'f' => null,
+                        'd' => 'off',
+                        'e' => null,
                     ],
                 ]]],
             );
@@ -452,8 +504,8 @@ class V1ManagerTest extends TestCase
         $v1Manager = new V1Manager($connFactoryMock, $serializerFactoryMock, Utils::default(), $this->logger);
         $this->assertEquals(
             [
-                new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, ['on' => 'some']),
-                new SplitView('someName2', 'someTrafficType', false, ['on', 'off'], 124, null),
+                new SplitView('someName', 'someTrafficType', true, ['on', 'off'], 123, 'on', ['s1', 's2'], ['on' => 'some']),
+                new SplitView('someName2', 'someTrafficType', false, ['on', 'off'], 124, 'off', [], null),
             ],
             $v1Manager->splits()
         );

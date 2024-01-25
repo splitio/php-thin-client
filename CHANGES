@@ -1,3 +1,11 @@
+1.5.0 (Jan 25, 2024)
+- Added support for Flag Sets on the SDK, which enables grouping feature flags and interacting with the group rather than individually (more details in our documentation):
+  - Added new variations of the get treatment methods to support evaluating flags in given flag set/s.
+    - getTreatmentsByFlagSet and getTreatmentsByFlagSets
+    - getTreatmentWithConfigByFlagSets and getTreatmentsWithConfigByFlagSets
+- Updated the following SDK manager method to expose flag sets on flag views:
+    - Added `defaultTreatment` property to the `SplitView` object returned by the `split` and `splits` methods of the SDK manager.
+
 1.4.0 (Dec 14, 2023):
 - Add support for a custom tracer for client methods.
 - Support finer granularity on timeouts.
