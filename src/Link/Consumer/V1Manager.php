@@ -110,8 +110,8 @@ class V1Manager implements Manager
 
         foreach ($response->getEvaluationResults() as $feature => $evalResult) {
             $results[$feature] = $evalResult == null
-            ? ["control", null, null]
-            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata(), $evalResult->getConfig()];
+            ? ["control", null]
+            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata()];
         }
 
         return $results;
@@ -154,8 +154,8 @@ class V1Manager implements Manager
 
         foreach ($response->getEvaluationResults() as $feature => $evalResult) {
             $results[$feature] = $evalResult == null
-            ? ["control", null, null]
-            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata(), $evalResult->getConfig()];
+            ? ["control", null]
+            : [$evalResult->getTreatment(), $evalResult->getImpressionListenerdata()];
         }
 
         return $results;

@@ -126,7 +126,7 @@ class V1ManagerTest extends TestCase
             $v1Manager->getTreatmentsWithConfig('k', 'b', ['f1', 'f2', 'f3'], ['a' => 1])
         );
         $this->assertEquals(
-            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
             $v1Manager->getTreatmentsByFlagSet('k', 'b', "s", ['a' => 1])
         );
         $this->assertEquals(
@@ -134,7 +134,7 @@ class V1ManagerTest extends TestCase
             $v1Manager->getTreatmentsWithConfigByFlagSet('k', 'b', "s", ['a' => 1])
         );
         $this->assertEquals(
-            ['f1' => ['on', null, null], 'f2' => ['on', null, null], 'f3' => ['off', null, '{"a": 2}']],
+            ['f1' => ['on', null], 'f2' => ['on', null], 'f3' => ['off', null]],
             $v1Manager->getTreatmentsByFlagSets('k', 'b', ["s1", "s2"], ['a' => 1])
         );
         $this->assertEquals(
