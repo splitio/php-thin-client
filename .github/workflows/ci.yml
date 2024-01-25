@@ -58,7 +58,7 @@ jobs:
 
       - name: SonarQube Scan
         if: matrix.version == '8.2'
-        uses: SonarSource/sonarcloud-github-action@v2.0.0
+        uses: SonarSource/sonarcloud-github-action@v2.1.1
         env:
           SONAR_TOKEN: ${{ secrets.SONARQUBE_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
