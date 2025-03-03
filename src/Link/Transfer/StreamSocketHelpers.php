@@ -5,7 +5,7 @@ namespace SplitIO\ThinSdk\Link\Transfer;
 class StreamSocketHelpers
 {
 
-    public static function writeOrThrow(/*Socket*/ $socket, string $message): int
+    public static function writeOrThrow(/*Socket*/$socket, string $message): int
     {
         $sent = @socket_send($socket, $message, strlen($message), 0);
         if ($sent == false) {
@@ -14,7 +14,7 @@ class StreamSocketHelpers
         return $sent;
     }
 
-    public static function readOrThrow(/*Socket*/ $socket, string &$buffer, int $length): int
+    public static function readOrThrow(/*Socket*/$socket, string &$buffer, int $length): int
     {
         $res = @socket_recv($socket, $buffer, $length, 0);
         if ($res == false) {

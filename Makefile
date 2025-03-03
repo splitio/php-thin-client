@@ -24,14 +24,14 @@ sock-buf-size-enhance:
 
 ## Run all tests (args optional)
 test:
-	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-clover $(COVERAGE_FILE) $(ARGS)
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml  --coverage-clover $(COVERAGE_FILE) $(ARGS)
 
 ## Display a human readable coverage report after (re)generating it if required.
 display-coverage: $(COVERAGE_HTML_PATH)
 	open $(COVERAGE_HTML_PATH)/index.html
 
 $(COVERAGE_HTML_PATH): $(SOURCES)
-	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml -v --coverage-html $(COVERAGE_HTML_PATH)/
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml  --coverage-html $(COVERAGE_HTML_PATH)/
 
 composer.lock vendor/: composer.json
 	$(COMPOSER) update
