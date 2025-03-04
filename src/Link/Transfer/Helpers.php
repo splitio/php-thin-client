@@ -17,8 +17,11 @@ class Helpers
     {
 
         // check operation is valid
+        $excMessage = 'error reading from socket: ';
         switch ($op) {
             case 'socket_send':
+                $excMessage = 'error writing to socket: ';
+                break;
             case 'socket_recv':
                 break;
             default:
@@ -39,8 +42,10 @@ class Helpers
                 case SOCKET_EINTR:
                     continue;
                 default:
-                    throw new ConnectionException("error writing to socket: " . @socket_strerror($err), $err);
+                    throw new ConnectionException($excMessage . @socket_strerror($err), $err);
             }
         } while ($attempts > 0);
-  }
+
+        throw new ConnectionException($excMessage . "attempts exhausted after multiple timeouts");
+    }
 }
