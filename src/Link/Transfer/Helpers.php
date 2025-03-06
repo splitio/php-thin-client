@@ -30,17 +30,16 @@ class Helpers
 
         do {
             $res = @$op($socket, $buffer, $size, $flags);
-            if ($res != false) {
+            if ($res !== false) {
                 return $res;
             }
-
             $err = @socket_last_error($socket);
             switch ($err) {
                 case SOCKET_EAGAIN:
-                case SOCKET_EWOULDBLOCK:
                     $attempts--;
+                    break;
                 case SOCKET_EINTR:
-                    continue;
+                    break;
                 default:
                     throw new ConnectionException($excMessage . @socket_strerror($err), $err);
             }

@@ -24,7 +24,7 @@ sock-buf-size-enhance:
 
 ## Run all tests (args optional)
 test:
-	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml  --coverage-clover $(COVERAGE_FILE) $(ARGS)
+	XDEBUG_MODE=coverage $(PHPUNIT) -c phpunit.xml --enforce-time-limit --default-time-limit=10 --coverage-clover $(COVERAGE_FILE) $(ARGS)
 
 ## Display a human readable coverage report after (re)generating it if required.
 display-coverage: $(COVERAGE_HTML_PATH)
