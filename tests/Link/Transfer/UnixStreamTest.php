@@ -15,7 +15,7 @@ class UnixStreamTest extends TestCase
     public function setUp(): void
     {
         if (getenv("DEBUG") == true) {
-            fwrite(STDERR, "preparing socket server for test: `" . get_class($this) . "::" . $this->getName() . "`\n");
+            fwrite(STDERR, "preparing socket server for test: `" . get_class($this) . "::" . $this->name() . "`\n");
         }
 
         $this->socketServerRC = new SocketServerRemoteControl();
