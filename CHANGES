@@ -1,4 +1,5 @@
-1.5.1 (Mar 14, 2025)
+2.0.0-rc1 (Mar 14, 2025)
+- Drop PHP 7 support
 - Don't restart connection flow when a timeout error occurs
 
 1.5.0 (Jan 25, 2024)

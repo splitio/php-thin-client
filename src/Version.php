@@ -4,5 +4,5 @@ namespace SplitIO\ThinSdk;
 
 class Version
 {
-    const CURRENT = '1.5.1-rc1';
+    const CURRENT = '2.0.0-rc1';
 }
