@@ -20,8 +20,8 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '7.3'
-          - '8.2'
+          - '8.1'
+          - '8.4'
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -51,7 +51,7 @@ jobs:
           DEBUG: true
           GHA: true
         run: |
-          make test ARGS='-v'
+          make test
 
       - name: Set VERSION env
         run: echo "VERSION=$(cat src/Version.php | grep 'const CURRENT' | cut -d "'" -f 2 | sed "s/'//g")" >> $GITHUB_ENV
