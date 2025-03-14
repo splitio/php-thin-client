@@ -20,7 +20,7 @@ class UnixSeqPacketTest extends TestCase
         }
 
         if (getenv("DEBUG") == true) {
-            fwrite(STDERR, "preparing socket server for test: `" . get_class($this) . "::" . $this->getName() . "`\n");
+            fwrite(STDERR, "preparing socket server for test: `" . get_class($this) . "::" . $this->name() . "`\n");
         }
 
         $this->socketServerRC = new SocketServerRemoteControl();
@@ -84,7 +84,7 @@ class UnixSeqPacketTest extends TestCase
 
     public function testConnectionBreaksBefore2ndInteraction(): void
     {
-        $this->expectExceptionObject(new ConnectionException("error writing to socket: Broken pipe"));
+        $this->expectExceptionObject(new ConnectionException("error writing to socket: Broken pipe", SOCKET_EPIPE));
 
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 1, [
@@ -115,7 +115,7 @@ class UnixSeqPacketTest extends TestCase
 
     public function testReadTimeout(): void
     {
-        $this->expectExceptionObject(new ConnectionException("error reading from socket: Resource temporarily unavailable"));
+        $this->expectExceptionObject(new ConnectionException("error reading from socket: attempts exhausted after multiple timeouts"));
 
         $serverAddress = sys_get_temp_dir() . "/php_thin_client_tests_seqpacket.sock";
         $this->socketServerRC->start(SocketServerRemoteControl::UNIX_SEQPACKET, $serverAddress, 1, [
@@ -134,7 +134,7 @@ class UnixSeqPacketTest extends TestCase
 
         $this->socketServerRC->awaitServerReady();
 
-        $realSock = new UnixPacket($serverAddress, ['timeout' => ['sec' => 1, 'usec' => 0]]);
+        $realSock = new UnixPacket($serverAddress, ['timeout' => ['sec' => 0, 'usec' => 100000]]); // 500 ms
         $realSock->sendMessage("something");
         $response = $realSock->readMessage();
         $this->assertEquals($response, "something else");

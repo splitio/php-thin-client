@@ -36,31 +36,41 @@ class ClientTest extends TestCase
         $tracer->expects($this->once())->method('includeArgs')->willReturn(true);
         $tracer->expects($this->once())->method('makeId')->willReturn('some_id');
 
-        $tracer->expects($this->exactly(4))
+        $expectations = [
+            [
+                'id' => 'some_id',
+                'method' => Tracer::METHOD_GET_TREATMENT,
+                'event' => Tracer::EVENT_START,
+                'arguments' => ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]],
+            ],
+            [
+                'id' => 'some_id',
+                'method' => Tracer::METHOD_GET_TREATMENT,
+                'event' => Tracer::EVENT_RPC_START,
+            ],
+            [
+                'id' => 'some_id',
+                'method' => Tracer::METHOD_GET_TREATMENT,
+                'event' => Tracer::EVENT_RPC_END,
+            ],
+            [
+                'id' => 'some_id',
+                'method' => Tracer::METHOD_GET_TREATMENT,
+                'event' => Tracer::EVENT_END,
+            ],
+        ];
+
+        $invokedCount = $this->exactly(4);
+        $tracer->expects($invokedCount)
             ->method('trace')
-            ->withConsecutive(
-                [[
-                    'id' => 'some_id',
-                    'method' => Tracer::METHOD_GET_TREATMENT,
-                    'event' => Tracer::EVENT_START,
-                    'arguments' => ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]],
-                ]],
-                [[
-                    'id' => 'some_id',
-                    'method' => Tracer::METHOD_GET_TREATMENT,
-                    'event' => Tracer::EVENT_RPC_START,
-                ]],
-                [[
-                    'id' => 'some_id',
-                    'method' => Tracer::METHOD_GET_TREATMENT,
-                    'event' => Tracer::EVENT_RPC_END,
-                ]],
-                [[
-                    'id' => 'some_id',
-                    'method' => Tracer::METHOD_GET_TREATMENT,
-                    'event' => Tracer::EVENT_END,
-                ]],
-            );
+            ->willReturnCallback(function ($args) use ($invokedCount, $expectations) {
+                match ([$invokedCount->numberOfInvocations() - 1, $args]) {
+                    [0, $expectations[0]] => null,
+                    [1, $expectations[1]] => null,
+                    [2, $expectations[2]] => null,
+                    [3, $expectations[3]] => null,
+                };
+            });
 
         $client = new Client($manager, $this->logger, null, null, $tracer);
         $this->assertEquals('on', $client->getTreatment('someKey', 'someBuck', 'someFeature', ['someAttr' => 123]));
@@ -112,41 +122,50 @@ class ClientTest extends TestCase
         $tracer = $this->createMock(Tracer::class);
         $tracer->expects($this->once())->method('includeArgs')->willReturn(true);
         $tracer->expects($this->once())->method('makeId')->willReturn('some_id2');
-        $tracer->expects($this->exactly(4))
+
+        $expectations = [
+            [
+                'id' => 'some_id2',
+                'method' => Tracer::METHOD_GET_TREATMENTS,
+                'event' => Tracer::EVENT_START,
+                'arguments' => ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]],
+            ],
+            [
+                'id' => 'some_id2',
+                'method' => Tracer::METHOD_GET_TREATMENTS,
+                'event' => Tracer::EVENT_RPC_START,
+            ],
+            [
+                'id' => 'some_id2',
+                'method' => Tracer::METHOD_GET_TREATMENTS,
+                'event' => Tracer::EVENT_RPC_END,
+            ],
+            [
+                'id' => 'some_id2',
+                'method' => Tracer::METHOD_GET_TREATMENTS,
+                'event' => Tracer::EVENT_END,
+            ]
+        ];
+        $invokedCount = $this->exactly(4);
+
+        $tracer->expects($invokedCount)
             ->method('trace')
-            ->withConsecutive(
-                [[
-                    'id' => 'some_id2',
-                    'method' => Tracer::METHOD_GET_TREATMENTS,
-                    'event' => Tracer::EVENT_START,
-                    'arguments' => ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]],
-                ]],
-                [[
-                    'id' => 'some_id2',
-                    'method' => Tracer::METHOD_GET_TREATMENTS,
-                    'event' => Tracer::EVENT_RPC_START,
-                ]],
-                [[
-                    'id' => 'some_id2',
-                    'method' => Tracer::METHOD_GET_TREATMENTS,
-                    'event' => Tracer::EVENT_RPC_END,
-                ]],
-                [[
-                    'id' => 'some_id2',
-                    'method' => Tracer::METHOD_GET_TREATMENTS,
-                    'event' => Tracer::EVENT_END,
-                ]]
-            );
+            ->willReturnCallback(function ($args) use ($expectations, $invokedCount) {
+                $this->assertEquals($expectations[$invokedCount->numberOfInvocations() - 1], $args);
+            });
 
-
+        $ilExp = [
+            [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
+            [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
+            [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
+        ];
+        $ilInvokedCount = $this->exactly(3);
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMock->expects($ilInvokedCount)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(function ($args) use ($ilExp, $ilInvokedCount) {
+                $this->assertEquals($ilExp[$ilInvokedCount->numberOfInvocations() - 1], $args);
+            });
 
 
         $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
@@ -171,32 +190,33 @@ class ClientTest extends TestCase
         $tracer = $this->createMock(Tracer::class);
         $tracer->expects($this->once())->method('includeArgs')->willReturn(true);
         $tracer->expects($this->once())->method('makeId')->willReturn('some_id3');
-        $tracer->expects($this->exactly(4))
+        $expectations = [
+            [
+                'id' => 'some_id3',
+                'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
+                'event' => Tracer::EVENT_START,
+                'arguments' => ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]],
+            ],
+            [
+                'id' => 'some_id3',
+                'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
+                'event' => Tracer::EVENT_RPC_START,
+            ],
+            [
+                'id' => 'some_id3',
+                'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
+                'event' => Tracer::EVENT_RPC_END,
+            ],
+            [
+                'id' => 'some_id3',
+                'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
+                'event' => Tracer::EVENT_END,
+            ],
+        ];
+        $invCount = $this->exactly(4);
+        $tracer->expects($invCount)
             ->method('trace')
-            ->withConsecutive(
-                [[
-                    'id' => 'some_id3',
-                    'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
-                    'event' => Tracer::EVENT_START,
-                    'arguments' => ['someKey', 'someBuck', 'someFeature', ['someAttr' => 123]],
-                ]],
-                [[
-                    'id' => 'some_id3',
-                    'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
-                    'event' => Tracer::EVENT_RPC_START,
-                ]],
-                [[
-                    'id' => 'some_id3',
-                    'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
-                    'event' => Tracer::EVENT_RPC_END,
-                ]],
-                [[
-                    'id' => 'some_id3',
-                    'method' => Tracer::METHOD_GET_TREATMENT_WITH_CONFIG,
-                    'event' => Tracer::EVENT_END,
-                ]],
-            );
-
+            ->willReturnCallback(fn($args) => $this->assertEquals($expectations[$invCount->numberOfInvocations() - 1], $args));
         $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
         $this->assertEquals(
             ['treatment' => 'on', 'config' => '{"a": 1}'],
@@ -216,42 +236,50 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilExpectations = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123],
+        ];
+
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilExpectations[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $tracer = $this->createMock(Tracer::class);
         $tracer->expects($this->once())->method('includeArgs')->willReturn(true);
         $tracer->expects($this->once())->method('makeId')->willReturn('some_id4');
-        $tracer->expects($this->exactly(4))
+        $tracerInvs = $this->exactly(4);
+        $tracerExps = [
+            [
+                'id' => 'some_id4',
+                'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
+                'event' => Tracer::EVENT_START,
+                'arguments' => ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]],
+            ],
+            [
+                'id' => 'some_id4',
+                'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
+                'event' => Tracer::EVENT_RPC_START,
+            ],
+            [
+                'id' => 'some_id4',
+                'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
+                'event' => Tracer::EVENT_RPC_END,
+            ],
+            [
+                'id' => 'some_id4',
+                'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
+                'event' => Tracer::EVENT_END,
+            ]
+        ];
+        $tracer->expects($tracerInvs)
             ->method('trace')
-            ->withConsecutive(
-                [[
-                    'id' => 'some_id4',
-                    'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
-                    'event' => Tracer::EVENT_START,
-                    'arguments' => ['someKey', 'someBuck', ['someFeature1', 'someFeature2', 'someFeature3'], ['someAttr' => 123]],
-                ]],
-                [[
-                    'id' => 'some_id4',
-                    'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
-                    'event' => Tracer::EVENT_RPC_START,
-                ]],
-                [[
-                    'id' => 'some_id4',
-                    'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
-                    'event' => Tracer::EVENT_RPC_END,
-                ]],
-                [[
-                    'id' => 'some_id4',
-                    'method' => Tracer::METHOD_GET_TREATMENTS_WITH_CONFIG,
-                    'event' => Tracer::EVENT_END,
-                ]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($tracerExps[$tracerInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock, null, $tracer);
         $this->assertEquals(
@@ -264,7 +292,8 @@ class ClientTest extends TestCase
         );
     }
 
-    public function testGetTreatmentsByFlagSetNoImpListener() {
+    public function testGetTreatmentsByFlagSetNoImpListener()
+    {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsByFlagSet')
             ->with('someKey', 'someBuck', 'someset', ['someAttr' => 123])
@@ -293,13 +322,19 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilMockExps = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123]
+        ];
+
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilMockExps[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -319,14 +354,20 @@ class ClientTest extends TestCase
                 'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), '{"a": 2}'],
             ]);
 
+
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilMockExps = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123]
+        ];
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilMockExps[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -339,7 +380,8 @@ class ClientTest extends TestCase
         );
     }
 
-    public function testGetTreatmentsByFlagSetsNoImpListener() {
+    public function testGetTreatmentsByFlagSetsNoImpListener()
+    {
         $manager = $this->createMock(Manager::class);
         $manager->expects($this->once())->method('getTreatmentsByFlagSets')
             ->with('someKey', 'someBuck', ['set_1', 'set_2'], ['someAttr' => 123])
@@ -366,15 +408,19 @@ class ClientTest extends TestCase
                 'someFeature2' => ['off', new ImpressionListenerData('lab1', 124, 123457), null],
                 'someFeature3' => ['n/a', new ImpressionListenerData('lab1', 125, 123458), null],
             ]);
-
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilMockExps = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123]
+        ];
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilMockExps[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -395,13 +441,18 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilMockExps = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123]
+        ];
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]]
-            );
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilMockExps[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -540,15 +591,18 @@ class ClientTest extends TestCase
             ]);
 
         $ilMock = $this->createMock(ImpressionListener::class);
-        $ilMock
-            ->expects($this->exactly(3))
+        $ilMockInvs = $this->exactly(3);
+        $ilMockExps = [
+            new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457),
+            ['someAttr' => 123],
+            new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458),
+            ['someAttr' => 123]
+        ];
+        $ilMock->expects($ilMockInvs)
             ->method('accept')
-            ->withConsecutive(
-                [new Impression('someKey', 'someBuck', 'someFeature1', 'on', 'lab1', 123, 123456), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature2', 'off', 'lab1', 124, 123457), ['someAttr' => 123]],
-                [new Impression('someKey', 'someBuck', 'someFeature3', 'n/a', 'lab1', 125, 123458), ['someAttr' => 123]],
-            )
-            ->will($this->throwException(new \Exception("qqq")));
+            ->willReturnCallback(fn($args) => $this->assertEquals($ilMockExps[$ilMockInvs->numberOfInvocations() - 1], $args));
 
         $client = new Client($manager, $this->logger, $ilMock);
         $this->assertEquals(
@@ -627,15 +681,25 @@ class ClientTest extends TestCase
     public function testGetTreatmentsCacheEnabled()
     {
         $manager = $this->createMock(Manager::class);
-        $manager->expects($this->exactly(2))->method('getTreatments')
-            ->withConsecutive(
-                ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
-                ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['f1' => ['on', null, null], 'f2' => ['off', null, null]],
-                ['f3' => ['na', null, null]],
-            );
+        $mInvCount = $this->exactly(2);
+        $mExps = [
+            [
+                'args' => ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
+                'ret' => ['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]],
+            ],
+            [
+                'args' => ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
+                'ret' => ['f3' => ['na', null, 'another']],
+            ],
+        ];
+
+        $manager->expects($mInvCount)
+            ->method('getTreatments')
+            ->willReturnCallback(function (...$args) use ($mExps, $mInvCount) {
+                $params = $mExps[$mInvCount->numberOfInvocations() - 1];
+                $this->assertEquals($params['args'], $args);
+                return $params['ret'];
+            });
 
         $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
         $this->assertEquals(['f1' => 'on', 'f2' => 'off'], $client->getTreatments('someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]));
@@ -647,15 +711,24 @@ class ClientTest extends TestCase
     public function testGetTreatmentsWithConfigCacheEnabled()
     {
         $manager = $this->createMock(Manager::class);
-        $manager->expects($this->exactly(2))->method('getTreatmentsWithConfig')
-            ->withConsecutive(
-                ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
-                ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
-            )
-            ->willReturnOnConsecutiveCalls(
-                ['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]],
-                ['f3' => ['na', null, 'another']],
-            );
+        $mInvCount = $this->exactly(2);
+        $mExps = [
+            [
+                'args' => ['someKey', 'someBuck', ['f1', 'f2'], ['someAttr' => 123]],
+                'ret' => ['f1' => ['on', null, 'some'], 'f2' => ['off', null, null]],
+            ],
+            [
+                'args' => ['someKey', 'someBuck', ['f3'], ['someAttr' => 123]],
+                'ret' => ['f3' => ['na', null, 'another']],
+            ],
+        ];
+        $manager->expects($mInvCount)
+            ->method('getTreatmentsWithConfig')
+            ->willReturnCallback(function (...$args) use ($mExps, $mInvCount) {
+                $params = $mExps[$mInvCount->numberOfInvocations() - 1];
+                $this->assertEquals($params['args'], $args);
+                return $params['ret'];
+            });
 
         $client = new Client($manager, $this->logger, null, new CacheImpl(new KeyAttributeCRC32Hasher(), new NoEviction(0)));
         $this->assertEquals(
@@ -741,9 +814,10 @@ class ClientTest extends TestCase
                 'someKey',
                 ['someAttr' => 123],
                 [
-                    'f1' =>['treatment' => 'on', 'config' => 'some'],
+                    'f1' => ['treatment' => 'on', 'config' => 'some'],
                     'f2' => ['treatment' => 'off', 'config' => null]
-                ]);
+                ]
+            );
 
         $client = new Client($manager, $this->logger, null, $cache);
         $this->assertEquals(
@@ -835,9 +909,10 @@ class ClientTest extends TestCase
                 'someKey',
                 ['someAttr' => 123],
                 [
-                    'f1' =>['treatment' => 'on', 'config' => 'some'],
+                    'f1' => ['treatment' => 'on', 'config' => 'some'],
                     'f2' => ['treatment' => 'off', 'config' => null]
-                ]);
+                ]
+            );
 
         $client = new Client($manager, $this->logger, null, $cache);
         $this->assertEquals(

@@ -146,7 +146,7 @@ class SocketServerRemoteControl
     // This method is public only so it can be used as a signal handling callback
     public function sigHandler($signo, $siginfo)
     {
-        debug(var_export($siginfo, true));
+        debug("SIGNAL RECEIVED IN PARENT PROCESS: " . var_export($siginfo, true));
         switch ($signo) {
             case SIGUSR1:
                 $this->ready = true;

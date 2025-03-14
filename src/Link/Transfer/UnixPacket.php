@@ -64,20 +64,13 @@ class UnixPacket implements RawConnection
 
     public function sendMessage(string $message)
     {
-        if (@socket_send($this->sock, $message, strlen($message), 0) != strlen($message)) {
-            throw new ConnectionException("error writing to socket: "
-                . Helpers::getSocketError($this->sock));
-        }
+        Helpers::wrapSocketOperation('socket_send', $this->sock, $message, strlen($message), 0);
     }
 
     public function readMessage(): string
     {
         $buffer = "";
-        $n = @socket_recv($this->sock, $buffer, $this->maxRecvSize, 0);
-        if ($n == false) {
-            throw new ConnectionException("error reading from socket: "
-                . Helpers::getSocketError($this->sock));
-        }
+        $n = Helpers::wrapSocketOperation('socket_recv', $this->sock, $buffer, $this->maxRecvSize, 0);
         return substr($buffer, 0, $n);
     }
 
