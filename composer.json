@@ -28,8 +28,7 @@
     "require": {
         "rybakit/msgpack": "^0.9.1",
         "psr/log": "1 - 3",
-        "myclabs/php-enum": "^1.8",
-        "psy/psysh": "^0.12.7"
+        "myclabs/php-enum": "^1.8"
     },
     "require-dev": {
         "phpunit/phpunit": "^10"
