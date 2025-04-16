@@ -1,4 +1,7 @@
-2.0.0-rc1 (Apr 14, 2025)
+2.0.1 (Apr 16, 2025)
+- Remove unnecessary dependency
+
+2.0.0 (Apr 14, 2025)
 - Drop PHP 7 support
 - Don't restart connection flow when a timeout error occurs
 
