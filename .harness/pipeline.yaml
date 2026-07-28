@@ -121,7 +121,7 @@ pipeline:
                       sonar-scanner \
                         -Dsonar.projectKey=splitsoftware_thin-sdk \
                         -Dsonar.sources=src \
-                        -Dsonar.tests=test \
+                        -Dsonar.tests=tests \
                         -Dsonar.host.url=https://sonar.harness.io \
                         -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
                         -Dsonar.exclusions="**/vendor/**,**/.git/**"
