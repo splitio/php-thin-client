@@ -9,10 +9,7 @@ pipeline:
       codebase:
         connectorRef: fmegithubharnessgitops
         repoName: php-thin-client
-        build:
-          type: branch
-          spec:
-            branch: <+input>
+        build: <+input>
   stages:
     - stage:
         name: Build and Test
