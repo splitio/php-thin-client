@@ -1,6 +1,6 @@
 inputSet:
-  name: phpthinclientinputset
   identifier: phpthinclientinputset
+  name: phpthinclientinputset
   orgIdentifier: PROD
   projectIdentifier: Harness_Split
   pipeline:

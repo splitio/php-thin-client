@@ -9,7 +9,10 @@ pipeline:
       codebase:
         connectorRef: fmegithubharnessgitops
         repoName: php-thin-client
-        build: <+input>
+        build:
+          type: branch
+          spec:
+            branch: <+input>
   stages:
     - stage:
         name: Build and Test
@@ -41,8 +44,10 @@ pipeline:
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
                       mise use --global php@<+matrix.phpVersion>
-                      php -v
-                      php -m
+                      apt-get update -qq
+                      apt-get install -y -qq php<+matrix.phpVersion>-mbstring php<+matrix.phpVersion>-intl php<+matrix.phpVersion>-pcntl php<+matrix.phpVersion>-sockets php<+matrix.phpVersion>-pcov || true
+                      php --version
+                      composer --version
               - step:
                   type: Run
                   name: Install Dependencies
@@ -52,7 +57,8 @@ pipeline:
                     command: |-
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
-                      composer install --no-interaction --no-progress
+                      composer install --prefer-dist
+                      composer update
               - step:
                   type: Run
                   name: Print Socket Buffer Sizes
@@ -60,7 +66,9 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      cat /proc/sys/net/core/rmem_default || true
                       cat /proc/sys/net/core/rmem_max || true
+                      cat /proc/sys/net/core/wmem_default || true
                       cat /proc/sys/net/core/wmem_max || true
               - step:
                   type: Run
@@ -75,6 +83,15 @@ pipeline:
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
                       make test
+              - step:
+                  type: Run
+                  name: Extract Version
+                  identifier: Extract_Version
+                  spec:
+                    shell: Bash
+                    command: |-
+                      VERSION=$(grep -oP "(?<=VERSION = ')[^']+" src/Version.php)
+                      echo "Extracted version: ${VERSION}"
               - step:
                   type: Run
                   name: SonarQube Scan
@@ -97,7 +114,6 @@ pipeline:
                         -Dsonar.tests=tests \
                         -Dsonar.host.url=https://sonar.harness.io \
                         -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
-                        -Dsonar.php.coverage.reportPaths=coverage.xml \
                         -Dsonar.exclusions="**/vendor/**,**/.git/**"
               - step:
                   type: Run
