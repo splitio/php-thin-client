@@ -55,7 +55,9 @@ pipeline:
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
                       pecl install pcov
-                      echo "extension=pcov.so" > "$(php -r 'echo php_ini_loaded_file();' | xargs dirname)/conf.d/pcov.ini" 2>/dev/null || echo "extension=pcov.so" >> "$(php -r 'echo php_ini_loaded_file();')"
+                      SCAN_DIR=$(php -i | grep '^Scan this dir for additional .ini files' | awk -F'=> ' '{print $2}' | xargs)
+                      mkdir -p "$SCAN_DIR"
+                      echo "extension=pcov.so" > "$SCAN_DIR/pcov.ini"
                       php -m
               - step:
                   type: Run
