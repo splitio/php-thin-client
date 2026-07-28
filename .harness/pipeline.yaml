@@ -1,5 +1,5 @@
 pipeline:
-  name: php-thin-client-repo
+  name: php-thin-client
   identifier: phpthinclient
   projectIdentifier: Harness_Split
   orgIdentifier: PROD
@@ -9,10 +9,7 @@ pipeline:
       codebase:
         connectorRef: fmegithubharnessgitops
         repoName: php-thin-client
-        build:
-          type: branch
-          spec:
-            branch: <+input>
+        build: <+input>
   stages:
     - stage:
         name: Build and Test
@@ -44,10 +41,19 @@ pipeline:
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
                       mise use --global php@<+matrix.phpVersion>
-                      apt-get update -qq
-                      apt-get install -y -qq php<+matrix.phpVersion>-mbstring php<+matrix.phpVersion>-intl php<+matrix.phpVersion>-pcntl php<+matrix.phpVersion>-sockets php<+matrix.phpVersion>-pcov || true
-                      php --version
-                      composer --version
+                      php -v
+                      phpize -v || true
+              - step:
+                  type: Run
+                  name: Install Extensions
+                  identifier: Install_Extensions
+                  spec:
+                    shell: Bash
+                    command: |-
+                      export PATH="$HOME/.local/bin:$PATH"
+                      eval "$(mise activate bash)"
+                      php -m | grep -qi mbstring || (apt-get update -qq && apt-get install -y php-mbstring php-intl php-pcntl php-sockets php-pcov -qq) || true
+                      php -m
               - step:
                   type: Run
                   name: Install Dependencies
@@ -66,10 +72,8 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      cat /proc/sys/net/core/rmem_default || true
-                      cat /proc/sys/net/core/rmem_max || true
-                      cat /proc/sys/net/core/wmem_default || true
-                      cat /proc/sys/net/core/wmem_max || true
+                      sysctl net.core.rmem_max net.core.wmem_max 2>/dev/null || true
+                      sysctl net.ipv4.tcp_rmem net.ipv4.tcp_wmem 2>/dev/null || true
               - step:
                   type: Run
                   name: Run Tests
@@ -90,8 +94,9 @@ pipeline:
                   spec:
                     shell: Bash
                     command: |-
-                      VERSION=$(grep -oP "(?<=VERSION = ')[^']+" src/Version.php)
-                      echo "Extracted version: ${VERSION}"
+                      VERSION=$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" src/Version.php | head -1)
+                      echo "Extracted VERSION=${VERSION}"
+                      echo "VERSION=${VERSION}" >> $HARNESS_ENV_VARS_FILE || true
               - step:
                   type: Run
                   name: SonarQube Scan
@@ -111,7 +116,7 @@ pipeline:
                       sonar-scanner \
                         -Dsonar.projectKey=splitsoftware_thin-sdk \
                         -Dsonar.sources=src \
-                        -Dsonar.tests=tests \
+                        -Dsonar.tests=test \
                         -Dsonar.host.url=https://sonar.harness.io \
                         -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
                         -Dsonar.exclusions="**/vendor/**,**/.git/**"
