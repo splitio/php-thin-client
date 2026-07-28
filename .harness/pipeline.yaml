@@ -42,11 +42,12 @@ pipeline:
                     command: |-
                       curl https://mise.run | sh
                       export PATH="$HOME/.local/bin:$PATH"
-                      mise use --global php@<+matrix.phpVersion>
                       eval "$(mise activate bash)"
-                      php --version
-                      composer --version || (curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer)
-                      php -m | grep -Ei 'mbstring|intl|pcntl|sockets|pcov' || true
+                      mise use --global php@<+matrix.phpVersion>
+                      apt-get update -qq
+                      apt-get install -y -qq php<+matrix.phpVersion>-mbstring php<+matrix.phpVersion>-intl php<+matrix.phpVersion>-pcov || true
+                      php -v
+                      composer --version || curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
               - step:
                   type: Run
                   name: Install Dependencies
@@ -65,8 +66,8 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      cat /proc/sys/net/core/wmem_max || true
                       cat /proc/sys/net/core/rmem_max || true
+                      cat /proc/sys/net/core/wmem_max || true
               - step:
                   type: Run
                   name: Run Tests
@@ -82,6 +83,16 @@ pipeline:
                       make test
               - step:
                   type: Run
+                  name: Extract Version
+                  identifier: Extract_Version
+                  spec:
+                    shell: Bash
+                    command: |-
+                      VERSION=$(grep -oP "(?<=VERSION = ')[^']+" src/Version.php)
+                      echo "Detected version: $VERSION"
+                      echo "PROJECT_VERSION=$VERSION" >> $HARNESS_ENV_VARS_FILE
+              - step:
+                  type: Run
                   name: SonarQube Scan
                   identifier: SonarQube_Scan
                   when:
@@ -90,7 +101,6 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      export VERSION=$(php -r "require 'src/Version.php'; echo defined('SPLIT_SDK_VERSION') ? SPLIT_SDK_VERSION : (isset(\$version) ? \$version : '');" 2>/dev/null || echo "0.0.0")
                       export SONAR_SCANNER_VERSION=5.0.1.3006
                       curl -sSLo sonar-scanner.zip \
                         "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip"
@@ -101,10 +111,10 @@ pipeline:
                         -Dsonar.projectKey=splitsoftware_thin-sdk \
                         -Dsonar.sources=src \
                         -Dsonar.tests=tests \
-                        -Dsonar.projectVersion="${VERSION}" \
                         -Dsonar.host.url=https://sonar.harness.io \
                         -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
-                        -Dsonar.php.coverage.reportPaths=coverage.xml \
+                        -Dsonar.projectVersion=<+pipeline.variables.PROJECT_VERSION> \
+                        -Dsonar.php.coverage.reportPaths=coverage-clover.xml \
                         -Dsonar.exclusions="**/vendor/**,**/.git/**"
               - step:
                   type: Run
