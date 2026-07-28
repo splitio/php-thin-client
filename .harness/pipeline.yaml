@@ -44,10 +44,8 @@ pipeline:
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
                       mise use --global php@<+matrix.phpVersion>
-                      apt-get update -qq
-                      apt-get install -y -qq php<+matrix.phpVersion>-mbstring php<+matrix.phpVersion>-intl php<+matrix.phpVersion>-pcov || true
                       php -v
-                      composer --version || curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+                      php -m
               - step:
                   type: Run
                   name: Install Dependencies
@@ -57,8 +55,7 @@ pipeline:
                     command: |-
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
-                      composer install --prefer-dist
-                      composer update
+                      composer install --no-interaction --no-progress
               - step:
                   type: Run
                   name: Print Socket Buffer Sizes
@@ -83,16 +80,6 @@ pipeline:
                       make test
               - step:
                   type: Run
-                  name: Extract Version
-                  identifier: Extract_Version
-                  spec:
-                    shell: Bash
-                    command: |-
-                      VERSION=$(grep -oP "(?<=VERSION = ')[^']+" src/Version.php)
-                      echo "Detected version: $VERSION"
-                      echo "PROJECT_VERSION=$VERSION" >> $HARNESS_ENV_VARS_FILE
-              - step:
-                  type: Run
                   name: SonarQube Scan
                   identifier: SonarQube_Scan
                   when:
@@ -113,8 +100,7 @@ pipeline:
                         -Dsonar.tests=tests \
                         -Dsonar.host.url=https://sonar.harness.io \
                         -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
-                        -Dsonar.projectVersion=<+pipeline.variables.PROJECT_VERSION> \
-                        -Dsonar.php.coverage.reportPaths=coverage-clover.xml \
+                        -Dsonar.php.coverage.reportPaths=coverage.xml \
                         -Dsonar.exclusions="**/vendor/**,**/.git/**"
               - step:
                   type: Run
