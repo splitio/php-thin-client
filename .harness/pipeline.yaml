@@ -1,0 +1,175 @@
+pipeline:
+  name: php-thin-client
+  identifier: phpthinclient
+  projectIdentifier: Harness_Split
+  orgIdentifier: PROD
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: fmegithubharnessgitops
+        repoName: php-thin-client
+        build: <+input>
+  stages:
+    - stage:
+        name: Build and Test
+        identifier: Build_and_Test
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec:
+              size: flex
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Install PHP
+                  identifier: Install_PHP
+                  spec:
+                    shell: Bash
+                    command: |-
+                      apt-get update -qq
+                      apt-get install -y -qq re2c libcurl4-openssl-dev libonig-dev libzip-dev libsodium-dev libwebp-dev libxml2-dev libssl-dev libgd-dev libjpeg-dev libpng-dev libfreetype-dev libxpm-dev
+                      curl https://mise.run | sh
+                      export PATH="$HOME/.local/bin:$PATH"
+                      eval "$(mise activate bash)"
+                      mise use --global php@<+matrix.phpVersion>
+                      php -v
+                      phpize -v || true
+              - step:
+                  type: Run
+                  name: Install Extensions
+                  identifier: Install_Extensions
+                  spec:
+                    shell: Bash
+                    command: |-
+                      export PATH="$HOME/.local/bin:$PATH"
+                      eval "$(mise activate bash)"
+                      pecl install pcov
+                      SCAN_DIR=$(php -i | grep '^Scan this dir for additional .ini files' | awk -F'=> ' '{print $2}' | xargs)
+                      mkdir -p "$SCAN_DIR"
+                      echo "extension=pcov.so" > "$SCAN_DIR/pcov.ini"
+                      php -m
+              - step:
+                  type: Run
+                  name: Install Dependencies
+                  identifier: Install_Dependencies
+                  spec:
+                    shell: Bash
+                    command: |-
+                      export PATH="$HOME/.local/bin:$PATH"
+                      eval "$(mise activate bash)"
+                      composer install --prefer-dist
+                      composer update
+              - step:
+                  type: Run
+                  name: Print Socket Buffer Sizes
+                  identifier: Print_Socket_Buffer_Sizes
+                  spec:
+                    shell: Sh
+                    command: |-
+                      sysctl net.core.rmem_max net.core.wmem_max 2>/dev/null || true
+                      sysctl net.ipv4.tcp_rmem net.ipv4.tcp_wmem 2>/dev/null || true
+              - step:
+                  type: Run
+                  name: Run Tests
+                  identifier: Run_Tests
+                  spec:
+                    shell: Bash
+                    envVariables:
+                      DEBUG: "true"
+                      GHA: "true"
+                    command: |-
+                      export PATH="$HOME/.local/bin:$PATH"
+                      eval "$(mise activate bash)"
+                      make test
+              - step:
+                  type: Run
+                  name: Extract Version
+                  identifier: Extract_Version
+                  spec:
+                    shell: Bash
+                    command: |-
+                      VERSION=$(grep -Eo "[0-9]+\.[0-9]+\.[0-9]+" src/Version.php | head -1)
+                      echo "Extracted VERSION=${VERSION}"
+                      echo "VERSION=${VERSION}" >> $HARNESS_ENV_VARS_FILE || true
+              - step:
+                  type: Run
+                  name: SonarQube Scan
+                  identifier: SonarQube_Scan
+                  when:
+                    stageStatus: Success
+                    condition: <+matrix.phpVersion> == "8.4"
+                  spec:
+                    shell: Sh
+                    command: |-
+                      export SONAR_SCANNER_VERSION=5.0.1.3006
+                      curl -sSLo sonar-scanner.zip \
+                        "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SONAR_SCANNER_VERSION}-linux.zip"
+                      unzip -q sonar-scanner.zip
+                      export PATH="$PWD/sonar-scanner-${SONAR_SCANNER_VERSION}-linux/bin:$PATH"
+                      apt-get install -y openjdk-17-jdk -qq
+                      sonar-scanner \
+                        -Dsonar.projectKey=splitsoftware_thin-sdk \
+                        -Dsonar.sources=src \
+                        -Dsonar.tests=tests \
+                        -Dsonar.host.url=https://sonar.harness.io \
+                        -Dsonar.token=<+secrets.getValue("sonarqube-token")> \
+                        -Dsonar.exclusions="**/vendor/**,**/.git/**"
+              - step:
+                  type: Run
+                  name: Post Quality Gate
+                  identifier: Post_Quality_Gate
+                  when:
+                    stageStatus: Success
+                    condition: <+matrix.phpVersion> == "8.4"
+                  spec:
+                    shell: Bash
+                    command: |-
+                      #!/bin/bash
+                      set -e
+
+                      SONAR_TOKEN="<+secrets.getValue("sonarqube-token")>"
+                      SONAR_URL="https://sonar.harness.io"
+                      SONAR_PROJECT_KEY="splitsoftware_thin-sdk"
+                      GITHUB_TOKEN="<+secrets.getValue("github-devops-token")>"
+                      GITHUB_REPO="php-thin-client"
+                      COMMIT_SHA="<+codebase.commitSha>"
+
+                      STATUS_JSON=$(curl -sf \
+                        -H "Authorization: Bearer ${SONAR_TOKEN}" \
+                        "${SONAR_URL}/api/qualitygates/project_status?projectKey=${SONAR_PROJECT_KEY}")
+
+                      QG_STATUS=$(echo "$STATUS_JSON" | python3 -c "import sys,json; print(json.load(sys.stdin)['projectStatus']['status'])")
+
+                      case "$QG_STATUS" in
+                        OK)    GH_STATE="success"; DESCRIPTION="Quality gate passed" ;;
+                        ERROR) GH_STATE="failure"; DESCRIPTION="Quality gate failed" ;;
+                        WARN)  GH_STATE="success"; DESCRIPTION="Quality gate passed with warnings" ;;
+                        *)     GH_STATE="pending"; DESCRIPTION="Quality gate status unknown" ;;
+                      esac
+
+                      TARGET_URL="${SONAR_URL}/dashboard?id=${SONAR_PROJECT_KEY}"
+
+                      curl -sf -X POST \
+                        -H "Authorization: token ${GITHUB_TOKEN}" \
+                        -H "Accept: application/vnd.github.v3+json" \
+                        -H "Content-Type: application/json" \
+                        -d "{\"state\":\"${GH_STATE}\",\"description\":\"${DESCRIPTION}\",\"context\":\"sonarqube/quality-gate\",\"target_url\":\"${TARGET_URL}\"}" \
+                        "https://api.github.com/repos/splitio/${GITHUB_REPO}/statuses/${COMMIT_SHA}"
+
+                      echo "Posted SonarQube quality gate status: ${GH_STATE}"
+        strategy:
+          matrix:
+            phpVersion:
+              - "8.1"
+              - "8.4"
