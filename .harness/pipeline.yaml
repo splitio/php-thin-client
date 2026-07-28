@@ -54,7 +54,8 @@ pipeline:
                     command: |-
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
-                      php -m | grep -qi mbstring || (apt-get update -qq && apt-get install -y php-mbstring php-intl php-pcntl php-sockets php-pcov -qq) || true
+                      pecl install pcov
+                      echo "extension=pcov.so" > "$(php -r 'echo php_ini_loaded_file();' | xargs dirname)/conf.d/pcov.ini" 2>/dev/null || echo "extension=pcov.so" >> "$(php -r 'echo php_ini_loaded_file();')"
                       php -m
               - step:
                   type: Run
