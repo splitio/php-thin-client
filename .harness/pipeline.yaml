@@ -37,6 +37,8 @@ pipeline:
                   spec:
                     shell: Bash
                     command: |-
+                      apt-get update -qq
+                      apt-get install -y -qq re2c
                       curl https://mise.run | sh
                       export PATH="$HOME/.local/bin:$PATH"
                       eval "$(mise activate bash)"
